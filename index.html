@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expense Diary</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="container">
+
+<header>
+<h1>📒 Expense Diary</h1>
+<p>Your Personal Finance Manager</p>
+</header>
+
+<div class="month-box">
+<label for="monthSelect">📅 Month</label>
+<select id="monthSelect">
+<option value="2026-08">August 2026</option>
+<option value="2026-09">September 2026</option>
+<option value="2026-10">October 2026</option>
+<option value="2026-11">November 2026</option>
+<option value="2026-12">December 2026</option>
+</select>
+<br><br>
+
+<button id="resetMonthButton">
+🔄 Reset Current Month
+</button>
+</div>
+<section class="comparison-section">
+
+    <div id="comparisonText">
+        No previous month data
+    </div>
+
+</section>
+<section class="summary">
+<div class="card">
+<h3>Income</h3>
+<h2 id="incomeDisplay">₹ 0</h2>
+<input type="number" id="incomeInput" placeholder="Enter Income">
+<br><br>
+<button id="saveIncome">Save Income</button>
+</div>
+
+<div class="card">
+<h3>Expense</h3>
+<h2>₹ 0</h2>
+</div>
+
+<div class="card">
+<h3>Remaining</h3>
+<h2 id="remainingDisplay">₹ 0</h2>
+</div>
+</section>
+
+<section class="expense-form">
+
+<h2>➕ Add Expense</h2>
+
+<div class="row">
+<div class="field">
+<label>Date</label>
+<input type="date" id="expenseDate">
+</div>
+
+<div class="field">
+<label>Amount</label>
+<input type="number" id="expenseAmount" placeholder="Enter Amount">
+</div>
+</div>
+
+<div class="row">
+<div class="field">
+<label>Category</label>
+<select id="expenseCategory">
+<option>Food</option>
+<option>Transport</option>
+<option>Fuel</option>
+<option>Medicine</option>
+<option>Shopping</option>
+<option>Internet</option>
+<option>Electricity</option>
+<option>House Tax</option>
+<option>Education</option>
+<option>Travel</option>
+<option>Others</option>
+</select>
+</div>
+
+<div class="field">
+<label>Paid From</label>
+<select id="expenseWallet">
+<option>Cash</option>
+<option>SBI</option>
+<option>HDFC</option>
+<option>PNB</option>
+<option>PhonePe</option>
+<option>Google Pay</option>
+<option>Credit Card</option>
+</select>
+</div>
+</div>
+
+<label>Description</label>
+<input type="text" id="expenseDescription" placeholder="Description">
+
+<button id="saveExpense">Save Expense</button>
+
+</section>
+
+<section class="transaction-section">
+<h2>📋 Recent Transactions</h2>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Category</th>
+<th>Wallet</th>
+<th>Amount</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody id="transactionBody">
+</tbody>
+</table>
+</section>
+
+<!-- Calendar section (UI only for now) -->
+<section class="calendar-section">
+<h2>📅 Monthly Calendar</h2>
+<div id="calendar"></div>
+</section>
+
+</div>
+<footer>
+
+    Developed by Dr. Soumya Chatterjee, 2026
+
+</footer>
+<script src="js/script.js"></script>
+</body>
+</html>
