@@ -6,6 +6,7 @@ const incomeInput = document.getElementById("incomeInput");
 const incomeDisplay = document.getElementById("incomeDisplay");
 const remainingDisplay = document.getElementById("remainingDisplay");
 const saveIncomeButton = document.getElementById("saveIncome");
+const totalSavingsDisplay = document.getElementById("totalSavingsDisplay");
 
 const expenseDate = document.getElementById("expenseDate");
 const expenseAmount = document.getElementById("expenseAmount");
@@ -18,6 +19,7 @@ const expenseDisplay = document.querySelectorAll(".card h2")[1];
 const transactionBody = document.getElementById("transactionBody");
 const resetMonthButton =
 document.getElementById("resetMonthButton");
+
 function key(){ return "expenseDiary_" + monthSelect.value; }
 
 let db={income:0,expenses:[]};
@@ -36,9 +38,51 @@ function money(x){ return "₹ "+Number(x).toLocaleString("en-IN"); }
 function render(){
     incomeDisplay.innerText=money(db.income);
     incomeInput.value=db.income||"";
-    const total=db.expenses.reduce((s,e)=>s+e.amount,0);
-    expenseDisplay.innerText=money(total);
-    remainingDisplay.innerText=money(db.income-total);
+
+    const total = db.expenses.reduce((s,e)=>s+e.amount,0);
+    expenseDisplay.innerText = money(total);
+
+    const currentSavings = db.income - total;
+    remainingDisplay.innerText = money(currentSavings);
+
+    // -------- Total Savings from Previous Months --------
+    let totalSavings = currentSavings;
+
+    const currentMonth = monthSelect.value;
+    let [currentYear, currentMonthNumber] =
+        currentMonth.split("-").map(Number);
+
+    // Add savings from all previous months of the same year
+    for(let month = 1; month < currentMonthNumber; month++){
+
+        const previousKey =
+            "expenseDiary_" +
+            currentYear +
+            "-" +
+            String(month).padStart(2,"0");
+
+        const previousData =
+            JSON.parse(localStorage.getItem(previousKey));
+
+        if(previousData){
+
+            const previousExpenseTotal =
+                previousData.expenses.reduce(
+                    (sum,e) => sum + e.amount,
+                    0
+                );
+
+            const previousSavings =
+                previousData.income - previousExpenseTotal;
+
+            totalSavings += previousSavings;
+        }
+    }
+
+    if(totalSavingsDisplay){
+        totalSavingsDisplay.innerText =
+            "Total Savings: " + money(totalSavings);
+    }
 
     transactionBody.innerHTML="";
     db.expenses.forEach(e=>{
@@ -48,84 +92,79 @@ function render(){
     });
 
     console.log("Calendar data:", buildCalendarTotals());
-  const comparisonText = document.getElementById("comparisonText");
+    const comparisonText = document.getElementById("comparisonText");
 
-// বর্তমান মাস
-const currentMonth = monthSelect.value;
+    const currentMonthForComparison = monthSelect.value;
+    let [year, month] = currentMonthForComparison.split("-").map(Number);
 
-// আগের মাস বের করা
-let [year, month] = currentMonth.split("-").map(Number);
+    month--;
 
-month--;
-
-if(month === 0){
-    month = 12;
-    year--;
-}
-
-const previousKey =
-"expenseDiary_" +
-year +
-"-" +
-String(month).padStart(2,"0");
-
-// আগের মাসের data
-
-const previousData =
-JSON.parse(localStorage.getItem(previousKey));
-
-const currentTotal =
-db.expenses.reduce((sum,e)=>sum+e.amount,0);
-
-if(previousData){
-
-    const previousTotal =
-    previousData.expenses.reduce((sum,e)=>sum+e.amount,0);
-
-    const difference =
-    currentTotal - previousTotal;
-
-    if(difference > 0){
-
-        comparisonText.innerHTML =
-        "🔴 ₹" +
-        difference.toLocaleString("en-IN") +
-        " More than last month";
-
-        comparisonText.style.color = "#c62828";
-
+    if(month === 0){
+        month = 12;
+        year--;
     }
 
-    else if(difference < 0){
+    const previousKey =
+    "expenseDiary_" +
+    year +
+    "-" +
+    String(month).padStart(2,"0");
 
-        comparisonText.innerHTML =
-        "🟢 ₹" +
-        Math.abs(difference).toLocaleString("en-IN") +
-        " Less than last month";
+    const previousData =
+    JSON.parse(localStorage.getItem(previousKey));
 
-        comparisonText.style.color = "#2e7d32";
+    const currentTotal =
+    db.expenses.reduce((sum,e)=>sum+e.amount,0);
+
+    if(previousData){
+
+        const previousTotal =
+        previousData.expenses.reduce((sum,e)=>sum+e.amount,0);
+
+        const difference =
+        currentTotal - previousTotal;
+
+        if(difference > 0){
+
+            comparisonText.innerHTML =
+            "🔴 ₹" +
+            difference.toLocaleString("en-IN") +
+            " More than last month";
+
+            comparisonText.style.color = "#c62828";
+
+        }
+
+        else if(difference < 0){
+
+            comparisonText.innerHTML =
+            "🟢 ₹" +
+            Math.abs(difference).toLocaleString("en-IN") +
+            " Less than last month";
+
+            comparisonText.style.color = "#2e7d32";
+
+        }
+
+        else{
+
+            comparisonText.innerHTML =
+            "🟡 Same as last month";
+
+            comparisonText.style.color = "#ef6c00";
+
+        }
 
     }
 
     else{
 
         comparisonText.innerHTML =
-        "🟡 Same as last month";
+        "No previous month data";
 
-        comparisonText.style.color = "#ef6c00";
+        comparisonText.style.color = "#555";
 
     }
-
-}
-
-else{
-
-    comparisonText.innerHTML =
-    "No previous month data";
-
-    comparisonText.style.color = "#555";
-
-}  
 }
 
 function buildCalendarTotals(){
@@ -161,7 +200,6 @@ saveExpenseButton.onclick=()=>{
 monthSelect.onchange=loadMonth;
 loadMonth();
 
-
 // -------- Calendar Rendering --------
 function renderCalendar(){
   const calendar=document.getElementById("calendar");
@@ -186,6 +224,7 @@ render = function(){
   _oldRender();
   renderCalendar();
 };
+
 resetMonthButton.onclick = function(){
 
     if(confirm("Reset this month's data?")){
