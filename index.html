@@ -56,10 +56,9 @@
 </div>
 
 <div class="card">
-<h3>Remaining / Savings</h3>
+<h3>Remaining</h3>
 <h2 id="remainingDisplay">₹ 0</h2>
-<p id="totalSavingsDisplay">Total Savings: ₹ 0</p>
-<p id="totalSavingsDisplay">Total Savings: ₹ 0</p>
+<p id="totalSavingsDisplay">Savings: ₹ 0</p>
 </div>
 </section>
 
@@ -120,6 +119,29 @@
 
 <section class="transaction-section">
 <h2>📋 Recent Transactions</h2>
+<div class="transaction-controls">
+
+    <select id="categoryFilter">
+        <option value="all">All Categories</option>
+        <option value="Food">Food</option>
+        <option value="Travel">Travel</option>
+        <option value="Shopping">Shopping</option>
+        <option value="Medicine">Medicine</option>
+        <option value="Bills">Bills</option>
+        <option value="Education">Education</option>
+        <option value="Others">Others</option>
+    </select>
+
+    <select id="transactionSort">
+        <option value="newest">Newest First</option>
+        <option value="oldest">Oldest First</option>
+        <option value="categoryAZ">Category A → Z</option>
+        <option value="categoryZA">Category Z → A</option>
+        <option value="amountHigh">Amount High → Low</option>
+        <option value="amountLow">Amount Low → High</option>
+    </select>
+
+</div>
 <table>
 <thead>
 <tr>
