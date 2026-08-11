@@ -6,6 +6,10 @@ const incomeInput = document.getElementById("incomeInput");
 const incomeDisplay = document.getElementById("incomeDisplay");
 const remainingDisplay = document.getElementById("remainingDisplay");
 const saveIncomeButton = document.getElementById("saveIncome");
+
+const categoryFilter = document.getElementById("categoryFilter");
+const transactionSort = document.getElementById("transactionSort");
+
 const totalSavingsDisplay = document.getElementById("totalSavingsDisplay");
 
 const expenseDate = document.getElementById("expenseDate");
@@ -81,15 +85,96 @@ function render(){
 
     if(totalSavingsDisplay){
         totalSavingsDisplay.innerText =
-            "Total Savings: " + money(totalSavings);
+            "Savings: " + money(totalSavings);
     }
 
-    transactionBody.innerHTML="";
-    db.expenses.forEach(e=>{
-      const tr=document.createElement("tr");
-      tr.innerHTML=`<td>${e.date}</td><td>${e.category}</td><td>${e.wallet}</td><td>${money(e.amount)}</td><td>${e.description}</td>`;
-      transactionBody.appendChild(tr);
-    });
+    transactionBody.innerHTML = "";
+
+let transactions = [...db.expenses];
+
+
+// -------- Category Filter --------
+
+if(categoryFilter && categoryFilter.value !== "all"){
+
+    transactions = transactions.filter(e =>
+        e.category === categoryFilter.value
+    );
+
+}
+
+
+// -------- Sorting --------
+
+if(transactionSort){
+
+    if(transactionSort.value === "newest"){
+
+        transactions.sort((a,b) =>
+            new Date(b.date) - new Date(a.date)
+        );
+
+    }
+
+    else if(transactionSort.value === "oldest"){
+
+        transactions.sort((a,b) =>
+            new Date(a.date) - new Date(b.date)
+        );
+
+    }
+
+    else if(transactionSort.value === "categoryAZ"){
+
+        transactions.sort((a,b) =>
+            a.category.localeCompare(b.category)
+        );
+
+    }
+
+    else if(transactionSort.value === "categoryZA"){
+
+        transactions.sort((a,b) =>
+            b.category.localeCompare(a.category)
+        );
+
+    }
+
+    else if(transactionSort.value === "amountHigh"){
+
+        transactions.sort((a,b) =>
+            b.amount - a.amount
+        );
+
+    }
+
+    else if(transactionSort.value === "amountLow"){
+
+        transactions.sort((a,b) =>
+            a.amount - b.amount
+        );
+
+    }
+
+}
+
+
+// -------- Display Transactions --------
+
+transactions.forEach(e => {
+
+    const tr = document.createElement("tr");
+
+    tr.innerHTML =
+        `<td>${e.date}</td>
+         <td>${e.category}</td>
+         <td>${e.wallet}</td>
+         <td>${money(e.amount)}</td>
+         <td>${e.description}</td>`;
+
+    transactionBody.appendChild(tr);
+
+});
 
     console.log("Calendar data:", buildCalendarTotals());
     const comparisonText = document.getElementById("comparisonText");
@@ -196,7 +281,8 @@ saveExpenseButton.onclick=()=>{
     expenseAmount.value="";
     expenseDescription.value="";
 };
-
+categoryFilter.onchange = render;
+transactionSort.onchange = render;
 monthSelect.onchange=loadMonth;
 loadMonth();
 
@@ -213,7 +299,14 @@ function renderCalendar(){
     const ds=`${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const box=document.createElement("div");
     box.className="calendar-day";
-    box.innerHTML=`<div class="date">${d}</div><div class="amount">${money(totals[ds]||0)}</div>`;
+    const dayAmount = totals[ds] || 0;
+
+box.innerHTML = `
+    <div class="date">${d}</div>
+    <div class="amount ${dayAmount === 0 ? 'zero-amount' : 'expense-amount'}">
+        ${money(dayAmount)}
+    </div>
+`;
     calendar.appendChild(box);
   }
 }
