@@ -236,3 +236,37 @@ footer{
     padding:15px;
 
 }
+
+.transaction-controls {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0 15px;
+    flex-wrap: wrap;
+}
+
+.transaction-controls select {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: white;
+    font-size: 14px;
+}
+
+.calendar-day .amount {
+    color: #e65100 !important;
+    font-weight: 700;
+    font-size: 13px;
+    margin-top: 8px;
+}
+
+.calendar-day .expense-amount {
+    color: #e65100 !important;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.calendar-day .zero-amount {
+    color: #1565c0 !important;
+    font-weight: 600;
+    font-size: 13px;
+}
