@@ -121,16 +121,20 @@
 <h2>📋 Recent Transactions</h2>
 <div class="transaction-controls">
 
-    <select id="categoryFilter">
-        <option value="all">All Categories</option>
-        <option value="Food">Food</option>
-        <option value="Travel">Travel</option>
-        <option value="Shopping">Shopping</option>
-        <option value="Medicine">Medicine</option>
-        <option value="Bills">Bills</option>
-        <option value="Education">Education</option>
-        <option value="Others">Others</option>
-    </select>
+<select id="categoryFilter">
+    <option value="all">All Categories</option>
+    <option value="Food">Food</option>
+    <option value="Transport">Transport</option>
+    <option value="Fuel">Fuel</option>
+    <option value="Medicine">Medicine</option>
+    <option value="Shopping">Shopping</option>
+    <option value="Internet">Internet</option>
+    <option value="Electricity">Electricity</option>
+    <option value="House Tax">House Tax</option>
+    <option value="Education">Education</option>
+    <option value="Travel">Travel</option>
+    <option value="Others">Others</option>
+</select>
 
     <select id="transactionSort">
         <option value="newest">Newest First</option>
@@ -155,6 +159,7 @@
 <tbody id="transactionBody">
 </tbody>
 </table>
+<button id="downloadPdfButton">📄 Download Transactions PDF</button>
 </section>
 
 <!-- Calendar section (UI only for now) -->
@@ -169,6 +174,7 @@
     Developed by Dr. Soumya Chatterjee, 2026
 
 </footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="js/script.js"></script>
 </body>
 </html>
