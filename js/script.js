@@ -10,6 +10,8 @@ const saveIncomeButton = document.getElementById("saveIncome");
 const categoryFilter = document.getElementById("categoryFilter");
 const transactionSort = document.getElementById("transactionSort");
 
+const downloadPdfButton =
+    document.getElementById("downloadPdfButton");
 const totalSavingsDisplay = document.getElementById("totalSavingsDisplay");
 
 const expenseDate = document.getElementById("expenseDate");
@@ -344,3 +346,283 @@ if ('serviceWorker' in navigator) {
     });
 
 }
+
+downloadPdfButton.onclick = function(){
+
+    const { jsPDF } = window.jspdf;
+
+    const doc = new jsPDF();
+
+    const monthName =
+        monthSelect.options[monthSelect.selectedIndex].text;
+
+    // Current filter
+    const selectedCategory =
+        categoryFilter ? categoryFilter.value : "all";
+
+    const categoryName =
+        selectedCategory === "all"
+        ? "All Categories"
+        : selectedCategory;
+
+    // Copy transactions
+    let transactions = [...db.expenses];
+
+    // Apply category filter
+    if(selectedCategory !== "all"){
+
+        transactions = transactions.filter(e =>
+            e.category === selectedCategory
+        );
+
+    }
+
+    // Apply current sorting
+    if(transactionSort){
+
+        if(transactionSort.value === "newest"){
+
+            transactions.sort((a,b) =>
+                new Date(b.date) - new Date(a.date)
+            );
+
+        }
+
+        else if(transactionSort.value === "oldest"){
+
+            transactions.sort((a,b) =>
+                new Date(a.date) - new Date(b.date)
+            );
+
+        }
+
+        else if(transactionSort.value === "categoryAZ"){
+
+            transactions.sort((a,b) =>
+                a.category.localeCompare(b.category)
+            );
+
+        }
+
+        else if(transactionSort.value === "categoryZA"){
+
+            transactions.sort((a,b) =>
+                b.category.localeCompare(a.category)
+            );
+
+        }
+
+        else if(transactionSort.value === "amountHigh"){
+
+            transactions.sort((a,b) =>
+                b.amount - a.amount
+            );
+
+        }
+
+        else if(transactionSort.value === "amountLow"){
+
+            transactions.sort((a,b) =>
+                a.amount - b.amount
+            );
+
+        }
+
+    }
+
+
+    // ---------- PDF HEADER ----------
+
+    doc.setFontSize(20);
+    doc.setFont(undefined, "bold");
+    doc.text("EXPENSE DIARY", 105, 20, {align:"center"});
+
+    doc.setFontSize(13);
+    doc.setFont(undefined, "normal");
+    doc.text(monthName, 105, 29, {align:"center"});
+
+    doc.setFontSize(10);
+    doc.text(
+        "Category: " + categoryName,
+        105,
+        36,
+        {align:"center"}
+    );
+
+
+    // ---------- SUMMARY ----------
+
+    const totalExpense =
+        transactions.reduce(
+            (sum,e) => sum + e.amount,
+            0
+        );
+
+    doc.setFontSize(10);
+
+    doc.text(
+        "Total Transactions: " + transactions.length,
+        20,
+        48
+    );
+
+    doc.text(
+        "Total Expense: Rs. " +
+        totalExpense.toLocaleString("en-IN"),
+        140,
+        48
+    );
+
+
+    // ---------- TABLE HEADER ----------
+
+    let y = 60;
+
+    doc.setFillColor(21, 101, 192);
+    doc.rect(15, y - 7, 180, 9, "F");
+
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(9);
+    doc.setFont(undefined, "bold");
+
+    doc.text("Date", 19, y);
+    doc.text("Category", 45, y);
+    doc.text("Paid From", 85, y);
+    doc.text("Amount", 125, y);
+    doc.text("Description", 155, y);
+
+
+    // ---------- TABLE ROWS ----------
+
+    y += 8;
+
+    doc.setTextColor(40,40,40);
+    doc.setFont(undefined, "normal");
+
+    transactions.forEach((e, index) => {
+
+        // Horizontal row line
+        doc.setDrawColor(210,210,210);
+        doc.line(15, y + 3, 195, y + 3);
+
+        doc.setFontSize(8);
+
+        doc.text(e.date, 19, y);
+
+        doc.text(
+            String(e.category).substring(0, 18),
+            45,
+            y
+        );
+
+        doc.text(
+            String(e.wallet).substring(0, 15),
+            85,
+            y
+        );
+
+        doc.text(
+            "Rs. " + Number(e.amount).toLocaleString("en-IN"),
+            125,
+            y
+        );
+
+        doc.text(
+            String(e.description || "-").substring(0, 25),
+            155,
+            y
+        );
+
+        y += 9;
+
+
+        // New page if required
+        if(y > 275){
+
+            doc.addPage();
+
+            y = 20;
+
+            doc.setFontSize(8);
+            doc.setTextColor(40,40,40);
+
+        }
+
+    });
+
+
+    // ---------- TOTAL ----------
+
+    y += 5;
+
+    doc.setDrawColor(21,101,192);
+    doc.line(15, y, 195, y);
+
+    y += 9;
+
+    doc.setFontSize(11);
+    doc.setFont(undefined, "bold");
+
+    doc.text(
+        "Total Expense: Rs. " +
+        totalExpense.toLocaleString("en-IN"),
+        135,
+        y
+    );
+
+
+    // ---------- FOOTER ----------
+
+    const pageCount = doc.internal.getNumberOfPages();
+
+    for(let i = 1; i <= pageCount; i++){
+
+        doc.setPage(i);
+
+        doc.setFontSize(8);
+        doc.setFont(undefined, "normal");
+
+        doc.setTextColor(110,110,110);
+
+        doc.text(
+            "Expense Diary",
+            20,
+            290
+        );
+
+        doc.text(
+            "Developed by Dr. Soumya Chatterjee © 2026",
+            105,
+            290,
+            {align:"center"}
+        );
+
+        doc.text(
+            "Page " + i + " of " + pageCount,
+            190,
+            290,
+            {align:"right"}
+        );
+
+    }
+
+
+    // ---------- SAVE PDF ----------
+
+    const safeMonth =
+        monthSelect.value.replace("-", "_");
+
+    const safeCategory =
+        selectedCategory === "all"
+        ? "All"
+        : selectedCategory.replace(/\s+/g, "_");
+
+    doc.save(
+        "Expense_Diary_" +
+        safeMonth +
+        "_" +
+        safeCategory +
+        ".pdf"
+    );
+
+};
