@@ -20,7 +20,7 @@ const expenseCategory = document.getElementById("expenseCategory");
 const expenseWallet = document.getElementById("expenseWallet");
 const expenseDescription = document.getElementById("expenseDescription");
 const saveExpenseButton = document.getElementById("saveExpense");
-
+let expensePieChart = null;
 const expenseDisplay = document.querySelectorAll(".card h2")[1];
 const transactionBody = document.getElementById("transactionBody");
 const resetMonthButton =
@@ -297,20 +297,159 @@ function renderCalendar(){
   const ym=monthSelect.value.split("-");
   const year=parseInt(ym[0]), month=parseInt(ym[1]);
   const days=new Date(year,month,0).getDate();
-  for(let d=1; d<=days; d++){
-    const ds=`${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const box=document.createElement("div");
-    box.className="calendar-day";
+  for(let d=1; d<=days; d++){ 
+
+    const ds =
+        `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+
+    const box = document.createElement("div");
+
+    box.className = "calendar-day";
+
     const dayAmount = totals[ds] || 0;
 
-box.innerHTML = `
-    <div class="date">${d}</div>
-    <div class="amount ${dayAmount === 0 ? 'zero-amount' : 'expense-amount'}">
-        ${money(dayAmount)}
-    </div>
-`;
+    box.innerHTML = `
+        <div class="date">${d}</div>
+        <div class="amount ${dayAmount === 0 ? 'zero-amount' : 'expense-amount'}">
+            ${money(dayAmount)}
+        </div>
+    `;
+
+    box.onclick = function(){
+
+        showCalendarDetails(ds);
+
+    };
+
     calendar.appendChild(box);
-  }
+}
+}
+function renderExpensePieChart(){
+
+    const canvas =
+        document.getElementById("expensePieChart");
+
+    if(!canvas || typeof Chart === "undefined") return;
+
+    const categoryTotals = {};
+
+    db.expenses.forEach(e => {
+
+        if(!categoryTotals[e.category]){
+            categoryTotals[e.category] = 0;
+        }
+
+        categoryTotals[e.category] += e.amount;
+
+    });
+
+    const labels = Object.keys(categoryTotals);
+    const values = Object.values(categoryTotals);
+
+    if(expensePieChart){
+        expensePieChart.destroy();
+    }
+
+    if(values.length === 0){
+        return;
+    }
+
+    expensePieChart = new Chart(canvas, {
+
+        type: "pie",
+
+        data: {
+            labels: labels,
+
+            datasets: [{
+                data: values
+            }]
+        },
+
+        options: {
+
+            responsive: true,
+
+            plugins: {
+
+                legend: {
+                    position: "bottom"
+                },
+
+                tooltip: {
+                    callbacks: {
+
+                        label: function(context){
+
+                            return context.label +
+                                ": ₹ " +
+                                Number(context.raw)
+                                .toLocaleString("en-IN");
+
+                        }
+
+                    }
+                }
+
+            }
+
+        }
+
+    });
+
+}
+function showCalendarDetails(date){
+
+    const details =
+        document.getElementById("calendarDetails");
+
+    const dayExpenses =
+        db.expenses.filter(e => e.date === date);
+
+    if(dayExpenses.length === 0){
+
+        details.style.display = "block";
+
+        details.innerHTML = `
+            <h3>📅 ${date}</h3>
+            <p>No expense recorded on this date.</p>
+        `;
+
+        return;
+    }
+
+    const total =
+        dayExpenses.reduce(
+            (sum,e) => sum + e.amount,
+            0
+        );
+
+    let html = `
+        <h3>📅 ${date}</h3>
+    `;
+
+    dayExpenses.forEach(e => {
+
+        html += `
+            <div class="calendar-detail-row">
+                <span>${e.category}</span>
+                <span>${e.wallet}</span>
+                <span>${money(e.amount)}</span>
+            </div>
+        `;
+
+    });
+
+    html += `
+        <div class="calendar-detail-total">
+            Total: ${money(total)}
+        </div>
+    `;
+
+    details.innerHTML = html;
+
+    details.style.display = "block";
+
 }
 
 // override render to also render calendar
@@ -318,8 +457,10 @@ const _oldRender = render;
 render = function(){
   _oldRender();
   renderCalendar();
+  renderExpensePieChart();
 };
-
+renderCalendar();
+renderExpensePieChart();
 resetMonthButton.onclick = function(){
 
     if(confirm("Reset this month's data?")){
@@ -569,7 +710,81 @@ downloadPdfButton.onclick = function(){
         135,
         y
     );
+// ---------- EXPENSE PIE CHART ----------
 
+if (expensePieChart) {
+
+    // Always start Expense Breakdown on a new page
+    doc.addPage();
+
+    y = 25;
+
+    const chartImage =
+        expensePieChart.toBase64Image();
+
+    doc.setFontSize(15);
+    doc.setFont(undefined, "bold");
+    doc.setTextColor(40,40,40);
+
+    doc.text(
+        "Expense Breakdown",
+        105,
+        y,
+        { align: "center" }
+    );
+
+    y += 10;
+
+    // Pie chart
+    doc.addImage(
+        chartImage,
+        "PNG",
+        55,
+        y,
+        100,
+        100
+    );
+
+    y += 112;
+
+    // Category-wise amounts
+    const pdfCategoryTotals = {};
+
+    transactions.forEach(e => {
+
+        if (!pdfCategoryTotals[e.category]) {
+            pdfCategoryTotals[e.category] = 0;
+        }
+
+        pdfCategoryTotals[e.category] += e.amount;
+
+    });
+
+    doc.setFontSize(10);
+    doc.setFont(undefined, "normal");
+
+    Object.entries(pdfCategoryTotals).forEach(
+        ([category, amount]) => {
+
+            doc.text(
+                category,
+                55,
+                y
+            );
+
+            doc.text(
+                "Rs. " +
+                amount.toLocaleString("en-IN"),
+                145,
+                y
+            );
+
+            y += 8;
+
+        }
+    );
+
+}
 
     // ---------- FOOTER ----------
 
