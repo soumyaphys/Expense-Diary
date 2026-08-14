@@ -418,6 +418,20 @@ function showCalendarDetails(date){
         return;
     }
 
+    // Category-wise total
+    const categoryTotals = {};
+
+    dayExpenses.forEach(e => {
+
+        if(!categoryTotals[e.category]){
+            categoryTotals[e.category] = 0;
+        }
+
+        categoryTotals[e.category] += e.amount;
+
+    });
+
+    // Total for the day
     const total =
         dayExpenses.reduce(
             (sum,e) => sum + e.amount,
@@ -428,17 +442,20 @@ function showCalendarDetails(date){
         <h3>📅 ${date}</h3>
     `;
 
-    dayExpenses.forEach(e => {
+    // Show each category only once
+    Object.entries(categoryTotals).forEach(
+        ([category, amount]) => {
 
-        html += `
-            <div class="calendar-detail-row">
-                <span>${e.category}</span>
-                <span>${e.wallet}</span>
-                <span>${money(e.amount)}</span>
-            </div>
-        `;
+            html += `
+                <div class="calendar-detail-row">
+                    <span>${category}</span>
+                    <span></span>
+                    <span>${money(amount)}</span>
+                </div>
+            `;
 
-    });
+        }
+    );
 
     html += `
         <div class="calendar-detail-total">
