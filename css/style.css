@@ -156,6 +156,10 @@ td{
     font-weight:bold;
 }
 
+.calendar-day {
+    cursor: pointer;
+}
+
 .calendar-day .amount{
     color:#1565c0;
     margin-top:8px;
@@ -359,4 +363,11 @@ footer{
     max-width: 320px !important;
     height: 320px !important;
     margin: 0 auto;
+}
+
+.calendar-hint {
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+    margin: -5px 0 12px;
 }
