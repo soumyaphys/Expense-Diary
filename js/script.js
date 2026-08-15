@@ -21,6 +21,7 @@ const expenseWallet = document.getElementById("expenseWallet");
 const expenseDescription = document.getElementById("expenseDescription");
 const saveExpenseButton = document.getElementById("saveExpense");
 let expensePieChart = null;
+let editingExpenseId = null;
 const expenseDisplay = document.querySelectorAll(".card h2")[1];
 const transactionBody = document.getElementById("transactionBody");
 const resetMonthButton =
@@ -31,7 +32,35 @@ function key(){ return "expenseDiary_" + monthSelect.value; }
 let db={income:0,expenses:[]};
 
 function loadMonth(){
-    db = JSON.parse(localStorage.getItem(key())) || {income:0,expenses:[]};
+
+    db = JSON.parse(
+        localStorage.getItem(key())
+    ) || {
+        income:0,
+        expenses:[]
+    };
+
+    // Give IDs to old transactions
+    let changed = false;
+
+    db.expenses.forEach(e => {
+
+        if(!e._id){
+
+            e._id =
+                Date.now() +
+                Math.floor(Math.random() * 1000000);
+
+            changed = true;
+
+        }
+
+    });
+
+    if(changed){
+        saveMonth();
+    }
+
     render();
 }
 
@@ -172,7 +201,16 @@ transactions.forEach(e => {
          <td>${e.category}</td>
          <td>${e.wallet}</td>
          <td>${money(e.amount)}</td>
-         <td>${e.description}</td>`;
+         <td>${e.description || ""}</td>
+         <td>
+            <button class="edit-expense" data-id="${e._id}">
+                ✏️
+            </button>
+
+            <button class="delete-expense" data-id="${e._id}">
+                🗑️
+            </button>
+         </td>`;
 
     transactionBody.appendChild(tr);
 
@@ -269,19 +307,82 @@ saveIncomeButton.onclick=()=>{
     render();
 };
 
-saveExpenseButton.onclick=()=>{
-    if(!expenseAmount.value){alert("Enter expense");return;}
-    db.expenses.push({
-      date:expenseDate.value||new Date().toISOString().slice(0,10),
-      amount:Number(expenseAmount.value),
-      category:expenseCategory.value,
-      wallet:expenseWallet.value,
-      description:expenseDescription.value
-    });
+saveExpenseButton.onclick = () => {
+
+    if(!expenseAmount.value){
+        alert("Enter expense");
+        return;
+    }
+
+    // EDIT EXISTING EXPENSE
+    if(editingExpenseId !== null){
+
+        const expense =
+            db.expenses.find(
+                e => e._id === editingExpenseId
+            );
+
+        if(expense){
+
+            expense.date =
+                expenseDate.value ||
+                new Date().toISOString().slice(0,10);
+
+            expense.amount =
+                Number(expenseAmount.value);
+
+            expense.category =
+                expenseCategory.value;
+
+            expense.wallet =
+                expenseWallet.value;
+
+            expense.description =
+                expenseDescription.value;
+
+        }
+
+        editingExpenseId = null;
+
+        saveExpenseButton.innerText =
+            "Save Expense";
+
+    }
+
+    // ADD NEW EXPENSE
+    else{
+
+        db.expenses.push({
+
+            _id: Date.now(),
+
+            date:
+                expenseDate.value ||
+                new Date().toISOString().slice(0,10),
+
+            amount:
+                Number(expenseAmount.value),
+
+            category:
+                expenseCategory.value,
+
+            wallet:
+                expenseWallet.value,
+
+            description:
+                expenseDescription.value
+
+        });
+
+    }
+
     saveMonth();
+
     render();
-    expenseAmount.value="";
-    expenseDescription.value="";
+
+    expenseAmount.value = "";
+    expenseDescription.value = "";
+
 };
 categoryFilter.onchange = render;
 transactionSort.onchange = render;
@@ -858,3 +959,84 @@ if (expensePieChart) {
     );
 
 };
+
+document.addEventListener("click", function(e){
+
+    // DELETE
+    if(e.target.classList.contains("delete-expense")){
+
+        const id =
+            Number(e.target.dataset.id);
+
+        const expense =
+            db.expenses.find(
+                item => item._id === id
+            );
+
+        if(!expense) return;
+
+        const confirmDelete =
+            confirm(
+                "Delete this transaction?\n\n" +
+                expense.category +
+                " - " +
+                money(expense.amount)
+            );
+
+        if(!confirmDelete) return;
+
+        db.expenses =
+            db.expenses.filter(
+                item => item._id !== id
+            );
+
+        saveMonth();
+
+        render();
+
+    }
+// EDIT
+if(e.target.classList.contains("edit-expense")){
+
+    const id =
+        Number(e.target.dataset.id);
+
+    const expense =
+        db.expenses.find(
+            item => item._id === id
+        );
+
+    if(!expense) return;
+
+    editingExpenseId = id;
+
+    // Fill the Add Expense form
+    expenseDate.value =
+        expense.date;
+
+    expenseAmount.value =
+        expense.amount;
+
+    expenseCategory.value =
+        expense.category;
+
+    expenseWallet.value =
+        expense.wallet;
+
+    expenseDescription.value =
+        expense.description || "";
+
+    // Change button text
+    saveExpenseButton.innerText =
+        "Update Expense";
+
+    // Scroll to form
+    document
+        .querySelector(".expense-form")
+        .scrollIntoView({
+            behavior: "smooth"
+        });
+
+}
+
+});
