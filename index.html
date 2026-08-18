@@ -118,7 +118,13 @@
 </section>
 
 <section class="transaction-section">
-<h2>📋 Recent Transactions</h2>
+
+<button id="transactionToggle" class="transaction-toggle">
+    📋 Recent Transactions <span id="transactionArrow">▼</span>
+</button>
+
+<div id="transactionContent" class="transaction-content">
+
 <div class="transaction-controls">
 
 <select id="categoryFilter">
@@ -161,6 +167,7 @@
 </tbody>
 </table>
 <button id="downloadPdfButton">📄 Download Transactions PDF</button>
+</div>
 </section>
 
 <!-- Calendar section (UI only for now) -->

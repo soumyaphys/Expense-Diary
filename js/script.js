@@ -10,6 +10,15 @@ const saveIncomeButton = document.getElementById("saveIncome");
 const categoryFilter = document.getElementById("categoryFilter");
 const transactionSort = document.getElementById("transactionSort");
 
+const transactionToggle =
+    document.getElementById("transactionToggle");
+
+const transactionContent =
+    document.getElementById("transactionContent");
+
+const transactionArrow =
+    document.getElementById("transactionArrow");
+
 const downloadPdfButton =
     document.getElementById("downloadPdfButton");
 const totalSavingsDisplay = document.getElementById("totalSavingsDisplay");
@@ -1040,3 +1049,20 @@ if(e.target.classList.contains("edit-expense")){
 }
 
 });
+
+transactionToggle.onclick = function(){
+
+    if(transactionContent.style.display === "none" ||
+       transactionContent.style.display === ""){
+
+        transactionContent.style.display = "block";
+        transactionArrow.innerText = "▲";
+
+    } else {
+
+        transactionContent.style.display = "none";
+        transactionArrow.innerText = "▼";
+
+    }
+
+};
