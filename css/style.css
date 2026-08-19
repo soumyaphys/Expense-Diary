@@ -389,3 +389,59 @@ footer{
     display: none;
     margin-top: 12px;
 }
+
+.category-comparison-section {
+    margin-top: 20px;
+}
+
+.category-comparison-section h2 {
+    margin-bottom: 12px;
+}
+
+.category-comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.category-comparison-table th,
+.category-comparison-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: left;
+    font-size: 14px;
+}
+
+.category-comparison-table th {
+    font-weight: bold;
+    background: #f5f5f5;
+    color: #333;
+}
+
+.category-comparison-table td:last-child {
+    font-weight: bold;
+}
+
+.category-up {
+    color: #c62828;
+}
+
+.category-down {
+    color: #2e7d32;
+}
+
+.category-same {
+    color: #777;
+}
+
+@media (max-width: 600px) {
+
+    .category-comparison-table th,
+    .category-comparison-table td {
+        padding: 8px 5px;
+        font-size: 12px;
+    }
+
+}

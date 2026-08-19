@@ -1201,6 +1201,221 @@ function buildCalendarTotals(){
     return totals;
 
 }
+function renderCategoryComparison(){
+
+    const container =
+        document.getElementById(
+            "categoryComparison"
+        );
+
+    if(!container){
+        return;
+    }
+
+    container.innerHTML = "";
+
+    const currentMonth =
+        monthSelect.value;
+
+    let [
+        year,
+        month
+    ] =
+        currentMonth
+            .split("-")
+            .map(Number);
+
+    // Previous month
+    month--;
+
+    if(month === 0){
+
+        month = 12;
+        year--;
+
+    }
+
+    const previousMonth =
+        year +
+        "-" +
+        String(month).padStart(2, "0");
+
+
+    const previousData =
+        monthCache[previousMonth];
+
+
+    // No previous month data
+    if(!previousData){
+
+        container.innerHTML = `
+            <p class="category-same">
+                No previous month data
+            </p>
+        `;
+
+        return;
+
+    }
+
+
+    // ==========================================
+    // CURRENT MONTH CATEGORY TOTALS
+    // ==========================================
+
+    const currentTotals = {};
+
+    db.expenses.forEach(e => {
+
+        currentTotals[e.category] =
+            (currentTotals[e.category] || 0) +
+            Number(e.amount);
+
+    });
+
+
+    // ==========================================
+    // PREVIOUS MONTH CATEGORY TOTALS
+    // ==========================================
+
+    const previousTotals = {};
+
+    previousData.expenses.forEach(e => {
+
+        previousTotals[e.category] =
+            (previousTotals[e.category] || 0) +
+            Number(e.amount);
+
+    });
+
+
+    // ==========================================
+    // ALL CATEGORIES
+    // ==========================================
+
+    const categories =
+        new Set([
+            ...Object.keys(currentTotals),
+            ...Object.keys(previousTotals)
+        ]);
+
+
+    let html = `
+
+        <table class="category-comparison-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>Category</th>
+
+                    <th>This Month</th>
+
+                    <th>Last Month</th>
+
+                    <th>Change</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+    `;
+
+
+    categories.forEach(category => {
+
+        const current =
+            currentTotals[category] || 0;
+
+        const previous =
+            previousTotals[category] || 0;
+
+        const difference =
+            current - previous;
+
+
+        let changeText = "";
+        let changeClass = "";
+
+
+        if(difference > 0){
+
+            changeText =
+                "↑ " +
+                money(difference);
+
+            changeClass =
+                "category-up";
+
+        }
+
+        else if(difference < 0){
+
+            changeText =
+                "↓ " +
+                money(
+                    Math.abs(difference)
+                );
+
+            changeClass =
+                "category-down";
+
+        }
+
+        else{
+
+            changeText =
+                "—";
+
+            changeClass =
+                "category-same";
+
+        }
+
+
+        html += `
+
+            <tr>
+
+                <td>
+                    ${category}
+                </td>
+
+                <td>
+                    ${money(current)}
+                </td>
+
+                <td>
+                    ${money(previous)}
+                </td>
+
+                <td class="${changeClass}">
+                    ${changeText}
+                </td>
+
+            </tr>
+
+        `;
+
+    });
+
+
+    html += `
+
+            </tbody>
+
+        </table>
+
+    `;
+
+
+    container.innerHTML =
+        html;
+
+}
 
 
 // =====================================================
@@ -1807,6 +2022,8 @@ render =
         renderCalendar();
 
         renderExpensePieChart();
+
+        renderCategoryComparison();
 
     };
 
