@@ -4160,7 +4160,14 @@ setDefaultExpenseDate();
 
 // Start IndexedDB
 
-initStorage();
+initStorage()
+    .then(
+        function(){
+
+            importAndroidWidgetExpense();
+
+        }
+    );
 // =====================================================
 // FINAL SAFETY CHECKS
 // =====================================================
@@ -4324,93 +4331,194 @@ document.addEventListener(
 );
 
 // =====================================================
-// ANDROID WIDGET → EXPENSE DIARY SYNC
+// ANDROID WIDGET → PWA INDEXEDDB IMPORT
 // =====================================================
 
-window.addAndroidExpenses = async function(items) {
+async function importAndroidWidgetExpense() {
 
-    if (!Array.isArray(items) || items.length === 0) {
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    if(
+        params.get(
+            "androidWidget"
+        ) !== "1"
+    ){
+
         return;
+
     }
 
-    if (!Array.isArray(db.expenses)) {
-        db.expenses = [];
+
+    const amount =
+        Number(
+            params.get(
+                "amount"
+            )
+        );
+
+
+    const category =
+        params.get(
+            "category"
+        ) || "Others";
+
+
+    const date =
+        params.get(
+            "date"
+        );
+
+
+    const uniqueId =
+        params.get(
+            "id"
+        );
+
+
+    if(
+        !amount ||
+        amount <= 0 ||
+        !date ||
+        !uniqueId
+    ){
+
+        return;
+
     }
 
-    const affectedMonths = new Set();
 
-    items.forEach(item => {
+    // Prevent duplicate import
+    const importedKey =
+        "androidWidgetImported_" +
+        uniqueId;
 
-        const date = String(item.date || "");
-        const month = date.slice(0, 7);
 
-        if (!month) {
-            return;
-        }
+    if(
+        localStorage.getItem(
+            importedKey
+        )
+    ){
 
-        if (!monthCache[month]) {
+        return;
 
-            monthCache[month] = {
-                income: 0,
-                incomes: [],
-                expenses: []
-            };
+    }
 
-        }
 
-        if (!Array.isArray(monthCache[month].expenses)) {
-            monthCache[month].expenses = [];
-        }
+    const month =
+        date.slice(
+            0,
+            7
+        );
 
-        monthCache[month].expenses.push({
 
-            _id:
-                Number(item._id) ||
-                Date.now() +
-                Math.floor(
-                    Math.random() * 1000000
-                ),
+    let monthData =
+        monthCache[
+            month
+        ];
 
-            date:
-                date,
 
-            amount:
-                Number(item.amount) || 0,
+    if(!monthData){
 
-            category:
-                item.category || "Others",
+        monthData = {
 
-            wallet:
-                item.wallet || "Cash",
+            income: 0,
 
-            description:
-                item.description ||
-                "Added from Android widget"
+            incomes: [],
 
-        });
+            expenses: []
 
-        affectedMonths.add(month);
+        };
+
+    }
+
+
+    if(
+        !Array.isArray(
+            monthData.expenses
+        )
+    ){
+
+        monthData.expenses = [];
+
+    }
+
+
+    monthData.expenses.push({
+
+        _id:
+            Number(
+                uniqueId
+            ),
+
+        date:
+            date,
+
+        amount:
+            amount,
+
+        category:
+            category,
+
+        wallet:
+            "Cash",
+
+        description:
+            "Added from Android widget"
 
     });
 
 
-    // Save affected months
-    for (const month of affectedMonths) {
+    // Save into the SAME IndexedDB
+    // used by the PWA.
 
-        await idbPut(
-            month,
-            monthCache[month]
-        );
+    await idbPut(
+        month,
+        monthData
+    );
+
+
+    monthCache[
+        month
+    ] =
+        monthData;
+
+
+    // Mark as imported
+
+    localStorage.setItem(
+        importedKey,
+        "1"
+    );
+
+
+    // If imported month is currently selected,
+    // refresh the display.
+
+    if(
+        monthSelect.value ===
+        month
+    ){
+
+        db =
+            monthData;
+
+        render();
 
     }
 
 
-    // Refresh currently selected month
-    db =
-        monthCache[
-            monthSelect.value
-        ] || db;
+    // Remove query parameters from URL
+    // after successful import.
 
-    render();
+    window.history.replaceState(
+        {},
+        document.title,
+        window.location.pathname
+    );
 
-};
+}
+
