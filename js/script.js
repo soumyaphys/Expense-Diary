@@ -4322,3 +4322,95 @@ document.addEventListener(
 
     }
 );
+
+// =====================================================
+// ANDROID WIDGET → EXPENSE DIARY SYNC
+// =====================================================
+
+window.addAndroidExpenses = async function(items) {
+
+    if (!Array.isArray(items) || items.length === 0) {
+        return;
+    }
+
+    if (!Array.isArray(db.expenses)) {
+        db.expenses = [];
+    }
+
+    const affectedMonths = new Set();
+
+    items.forEach(item => {
+
+        const date = String(item.date || "");
+        const month = date.slice(0, 7);
+
+        if (!month) {
+            return;
+        }
+
+        if (!monthCache[month]) {
+
+            monthCache[month] = {
+                income: 0,
+                incomes: [],
+                expenses: []
+            };
+
+        }
+
+        if (!Array.isArray(monthCache[month].expenses)) {
+            monthCache[month].expenses = [];
+        }
+
+        monthCache[month].expenses.push({
+
+            _id:
+                Number(item._id) ||
+                Date.now() +
+                Math.floor(
+                    Math.random() * 1000000
+                ),
+
+            date:
+                date,
+
+            amount:
+                Number(item.amount) || 0,
+
+            category:
+                item.category || "Others",
+
+            wallet:
+                item.wallet || "Cash",
+
+            description:
+                item.description ||
+                "Added from Android widget"
+
+        });
+
+        affectedMonths.add(month);
+
+    });
+
+
+    // Save affected months
+    for (const month of affectedMonths) {
+
+        await idbPut(
+            month,
+            monthCache[month]
+        );
+
+    }
+
+
+    // Refresh currently selected month
+    db =
+        monthCache[
+            monthSelect.value
+        ] || db;
+
+    render();
+
+};
