@@ -2222,8 +2222,6 @@ function renderCalendar(){
     }
 
 }
-
-
 // =====================================================
 // PIE CHART
 // =====================================================
@@ -3586,10 +3584,8 @@ if(
         };
 
 }
-
-
 // =====================================================
-// PDF DOWNLOAD
+// PDF REPORT
 // =====================================================
 
 if(downloadPdfButton){
@@ -3603,7 +3599,7 @@ if(downloadPdfButton){
             ){
 
                 alert(
-                    "PDF library is not loaded."
+                    "PDF library is not available."
                 );
 
                 return;
@@ -3621,12 +3617,16 @@ if(downloadPdfButton){
                 new jsPDF();
 
 
-            const currentMonth =
+            const month =
                 monthSelect.value;
 
 
+            const expenses =
+                db.expenses || [];
+
+
             const totalExpense =
-                db.expenses.reduce(
+                expenses.reduce(
                     (sum,e) =>
                         sum +
                         Number(
@@ -3637,20 +3637,20 @@ if(downloadPdfButton){
 
 
             const totalIncome =
-                (db.incomes || [])
-                    .reduce(
-                        (sum,item) =>
-                            sum +
-                            Number(
-                                item.amount
-                            ),
-                        0
-                    );
+                (db.incomes || []).reduce(
+                    (sum,item) =>
+                        sum +
+                        Number(
+                            item.amount
+                        ),
+                    0
+                );
 
 
-            // =================================================
-            // HEADER
-            // =================================================
+            const remaining =
+                totalIncome -
+                totalExpense;
+
 
             doc.setFontSize(
                 18
@@ -3659,12 +3659,8 @@ if(downloadPdfButton){
 
             doc.text(
                 "Expense Diary",
-                105,
-                18,
-                {
-                    align:
-                        "center"
-                }
+                14,
+                18
             );
 
 
@@ -3674,139 +3670,45 @@ if(downloadPdfButton){
 
 
             doc.text(
-                "Monthly Transactions",
-                105,
-                26,
-                {
-                    align:
-                        "center"
-                }
-            );
-
-
-            doc.setFontSize(
-                10
-            );
-
-
-            doc.text(
                 "Month: " +
-                currentMonth,
-                20,
-                38
+                month,
+                14,
+                28
             );
 
 
             doc.text(
-                "Total Income: Rs. " +
-                totalIncome
-                    .toLocaleString(
-                        "en-IN"
-                    ),
-                20,
-                48
+                "Total Income: " +
+                money(
+                    totalIncome
+                ),
+                14,
+                36
             );
 
 
             doc.text(
-                "Total Expense: Rs. " +
-                totalExpense
-                    .toLocaleString(
-                        "en-IN"
-                    ),
-                120,
-                48
+                "Total Expense: " +
+                money(
+                    totalExpense
+                ),
+                14,
+                44
             );
 
 
-            // =================================================
-            // INCOME BREAKDOWN
-            // =================================================
+            doc.text(
+                "Remaining: " +
+                money(
+                    remaining
+                ),
+                14,
+                52
+            );
 
-            let incomeY =
-                60;
-
-
-            if(
-                db.incomes &&
-                db.incomes.length
-            ){
-
-                doc.setFontSize(
-                    11
-                );
-
-
-                doc.text(
-                    "Income Breakdown",
-                    20,
-                    incomeY
-                );
-
-
-                incomeY +=
-                    7;
-
-
-                doc.setFontSize(
-                    9
-                );
-
-
-                db.incomes
-                    .slice()
-                    .sort(
-                        (a,b) =>
-                            new Date(
-                                a.date
-                            ) -
-                            new Date(
-                                b.date
-                            )
-                    )
-                    .forEach(
-                        item => {
-
-                            doc.text(
-                                formatShortDate(
-                                    item.date
-                                ),
-                                25,
-                                incomeY
-                            );
-
-
-                            doc.text(
-                                "Rs. " +
-                                Number(
-                                    item.amount
-                                )
-                                .toLocaleString(
-                                    "en-IN"
-                                ),
-                                70,
-                                incomeY
-                            );
-
-
-                            incomeY +=
-                                6;
-
-                        }
-                    );
-
-            }
-
-
-            // =================================================
-            // TRANSACTION TABLE
-            // =================================================
 
             let y =
-                Math.max(
-                    78,
-                    incomeY + 8
-                );
+                65;
 
 
             doc.setFontSize(
@@ -3814,207 +3716,121 @@ if(downloadPdfButton){
             );
 
 
-            const startX =
-                15;
-
-
-            const widths = [
-                25,
-                32,
-                32,
-                28,
-                63
-            ];
-
-
-            const headers = [
+            doc.text(
                 "Date",
+                14,
+                y
+            );
+
+
+            doc.text(
                 "Category",
+                42,
+                y
+            );
+
+
+            doc.text(
                 "Wallet",
+                85,
+                y
+            );
+
+
+            doc.text(
                 "Amount",
-                "Description"
-            ];
-
-
-            // Header
-
-            let x =
-                startX;
-
-
-            headers.forEach(
-                (header,i) => {
-
-                    doc.rect(
-                        x,
-                        y,
-                        widths[i],
-                        8
-                    );
-
-
-                    doc.text(
-                        header,
-                        x + 2,
-                        y + 5
-                    );
-
-
-                    x +=
-                        widths[i];
-
-                }
+                125,
+                y
             );
 
 
-            y +=
-                8;
-
-
-            doc.setFontSize(
-                8
+            doc.text(
+                "Description",
+                155,
+                y
             );
 
 
-            const transactions =
-                [...db.expenses].sort(
-                    (a,b) =>
-                        new Date(a.date) -
-                        new Date(b.date)
-                );
+            y += 7;
 
 
-            transactions.forEach(
-                e => {
+            expenses.forEach(
+                expense => {
 
                     if(
-                        y > 270
+                        y > 280
                     ){
 
                         doc.addPage();
 
-
-                        y =
-                            20;
+                        y = 20;
 
                     }
 
 
-                    const values = [
-
-                        e.date,
-
-                        e.category,
-
-                        e.wallet,
-
-                        "Rs. " +
-                        Number(
-                            e.amount
-                        )
-                        .toLocaleString(
-                            "en-IN"
+                    doc.text(
+                        String(
+                            expense.date ||
+                            ""
                         ),
-
-                        e.description ||
-                        ""
-
-                    ];
-
-
-                    let rowX =
-                        startX;
-
-
-                    values.forEach(
-                        (value,i) => {
-
-                            doc.rect(
-                                rowX,
-                                y,
-                                widths[i],
-                                8
-                            );
-
-
-                            doc.text(
-                                String(
-                                    value
-                                ).substring(
-                                    0,
-                                    i === 4
-                                    ? 35
-                                    : 18
-                                ),
-                                rowX + 2,
-                                y + 5
-                            );
-
-
-                            rowX +=
-                                widths[i];
-
-                        }
+                        14,
+                        y
                     );
 
 
-                    y +=
-                        8;
-
-                }
-            );
-
-
-            // =================================================
-            // FOOTER
-            // =================================================
-
-            if(
-                y > 260
-            ){
-
-                doc.addPage();
-
-                y =
-                    20;
-
-            }
+                    doc.text(
+                        String(
+                            expense.category ||
+                            ""
+                        ),
+                        42,
+                        y
+                    );
 
 
-            y +=
-                12;
+                    doc.text(
+                        String(
+                            expense.wallet ||
+                            ""
+                        ),
+                        85,
+                        y
+                    );
 
 
-            doc.setFontSize(
-                9
-            );
+                    doc.text(
+                        String(
+                            money(
+                                expense.amount
+                            )
+                        ),
+                        125,
+                        y
+                    );
 
 
-            doc.text(
-                "Expense Diary",
-                105,
-                y,
-                {
-                    align:
-                        "center"
-                }
-            );
+                    doc.text(
+                        String(
+                            expense.description ||
+                            ""
+                        ).slice(
+                            0,
+                            25
+                        ),
+                        155,
+                        y
+                    );
 
 
-            doc.text(
-                "Developed by Dr. Soumya Chatterjee, 2026",
-                105,
-                y + 6,
-                {
-                    align:
-                        "center"
+                    y += 6;
+
                 }
             );
 
 
             doc.save(
                 "Expense_Diary_" +
-                currentMonth +
+                month +
                 ".pdf"
             );
 
@@ -4024,92 +3840,14 @@ if(downloadPdfButton){
 
 
 // =====================================================
-// SERVICE WORKER
-// =====================================================
-
-if(
-    "serviceWorker" in
-    navigator
-){
-
-    window.addEventListener(
-        "load",
-        function(){
-
-            navigator.serviceWorker
-                .register(
-                    "service-worker.js"
-                )
-                .catch(
-                    function(error){
-
-                        console.warn(
-                            "Service worker registration failed:",
-                            error
-                        );
-
-                    }
-                );
-
-        }
-    );
-
-}
-
-
-// =====================================================
-// DEFAULT INCOME DATE
-// =====================================================
-
-function setDefaultIncomeDate(){
-
-    if(!incomeDate){
-
-        return;
-
-    }
-
-
-    const today =
-        new Date();
-
-
-    const selectedMonth =
-        monthSelect.value;
-
-
-    const todayMonth =
-        today.toISOString()
-            .slice(
-                0,
-                7
-            );
-
-
-    if(
-        todayMonth ===
-        selectedMonth
-    ){
-
-        incomeDate.value =
-            today.toISOString()
-                .slice(
-                    0,
-                    10
-                );
-
-    }
-
-}
-
-
-// =====================================================
-// DEFAULT EXPENSE DATE
+// DEFAULT DATES
 // =====================================================
 
 function setDefaultExpenseDate(){
 
-    if(!expenseDate){
+    if(
+        !expenseDate
+    ){
 
         return;
 
@@ -4120,29 +3858,61 @@ function setDefaultExpenseDate(){
         new Date();
 
 
-    const selectedMonth =
-        monthSelect.value;
-
-
-    const todayMonth =
-        today.toISOString()
+    const todayString =
+        today
+            .toISOString()
             .slice(
                 0,
-                7
+                10
             );
 
 
     if(
-        todayMonth ===
-        selectedMonth
+        todayString.startsWith(
+            monthSelect.value
+        )
     ){
 
         expenseDate.value =
-            today.toISOString()
-                .slice(
-                    0,
-                    10
-                );
+            todayString;
+
+    }
+
+}
+
+
+function setDefaultIncomeDate(){
+
+    if(
+        !incomeDate
+    ){
+
+        return;
+
+    }
+
+
+    const today =
+        new Date();
+
+
+    const todayString =
+        today
+            .toISOString()
+            .slice(
+                0,
+                10
+            );
+
+
+    if(
+        todayString.startsWith(
+            monthSelect.value
+        )
+    ){
+
+        incomeDate.value =
+            todayString;
 
     }
 
@@ -4160,14 +3930,9 @@ setDefaultExpenseDate();
 
 // Start IndexedDB
 
-initStorage()
-    .then(
-        function(){
+initStorage();
 
-            checkAndroidWidgetEntry();
 
-        }
-    );
 // =====================================================
 // FINAL SAFETY CHECKS
 // =====================================================
@@ -4213,6 +3978,7 @@ if(incomeDate){
                     "Please select a date from the selected month."
                 );
 
+
                 incomeDate.value =
                     "";
 
@@ -4244,6 +4010,7 @@ if(expenseDate){
                 alert(
                     "Please select a date from the selected month."
                 );
+
 
                 expenseDate.value =
                     "";
@@ -4330,221 +4097,415 @@ document.addEventListener(
     }
 );
 
+
 // =====================================================
-// ANDROID WIDGET BRIDGE
+// BACKUP / RESTORE UI
 // =====================================================
 
-window.addExpenseFromAndroidWidget = async function (
-    amount,
-    category
-) {
+function createBackupRestoreUI(){
 
-    amount = Number(amount);
+    if(!resetMonthButton){
 
-    category =
-        String(category || "Others").trim();
-
-
-    // ---------------------------------------------
-    // BASIC VALIDATION
-    // ---------------------------------------------
-
-    if (
-        !amount ||
-        amount <= 0
-    ) {
-
-        return {
-            success: false,
-            message: "Invalid amount"
-        };
+        return;
 
     }
 
 
-    // ---------------------------------------------
-    // TODAY'S DATE
-    // ---------------------------------------------
-
-    const today =
-        new Date()
-            .toISOString()
-            .slice(
-                0,
-                10
-            );
-
-
-    const month =
-        today.slice(
-            0,
-            7
-        );
-
-
-    // ---------------------------------------------
-    // GET MONTH DATA
-    // ---------------------------------------------
-
-    let monthData =
-        monthCache[month];
-
-
-    if (!monthData) {
-
-        monthData = {
-
-            income: 0,
-
-            incomes: [],
-
-            expenses: []
-
-        };
-
-    }
-
-
-    if (
-        !Array.isArray(
-            monthData.expenses
+    if(
+        document.getElementById(
+            "backupButton"
         )
-    ) {
+    ){
 
-        monthData.expenses = [];
+        return;
 
     }
 
 
-    // ---------------------------------------------
-    // CREATE EXPENSE
-    // ---------------------------------------------
-
-    const expense = {
-
-        _id:
-            Date.now(),
-
-        date:
-            today,
-
-        amount:
-            amount,
-
-        category:
-            category,
-
-        wallet:
-            "Cash",
-
-        description:
-            ""
-
-    };
+    const wrapper =
+        document.createElement(
+            "div"
+        );
 
 
-    // ---------------------------------------------
-    // ADD TO EXISTING EXPENSE ARRAY
-    // ---------------------------------------------
+    wrapper.style.marginTop =
+        "10px";
 
-    monthData.expenses.push(
-        expense
+
+    wrapper.style.display =
+        "flex";
+
+
+    wrapper.style.gap =
+        "8px";
+
+
+    wrapper.style.flexWrap =
+        "wrap";
+
+
+    const backupButton =
+        document.createElement(
+            "button"
+        );
+
+
+    backupButton.id =
+        "backupButton";
+
+
+    backupButton.type =
+        "button";
+
+
+    backupButton.innerText =
+        "💾 Backup Data";
+
+
+    const restoreButton =
+        document.createElement(
+            "button"
+        );
+
+
+    restoreButton.id =
+        "restoreButton";
+
+
+    restoreButton.type =
+        "button";
+
+
+    restoreButton.innerText =
+        "♻️ Restore Data";
+
+
+    const restoreFile =
+        document.createElement(
+            "input"
+        );
+
+
+    restoreFile.id =
+        "restoreFile";
+
+
+    restoreFile.type =
+        "file";
+
+
+    restoreFile.accept =
+        ".json,application/json";
+
+
+    restoreFile.style.display =
+        "none";
+
+
+    wrapper.appendChild(
+        backupButton
     );
 
 
-    // ---------------------------------------------
-    // SAVE USING EXISTING INDEXEDDB
-    // ---------------------------------------------
-
-    await idbPut(
-        month,
-        monthData
+    wrapper.appendChild(
+        restoreButton
     );
 
 
-    // ---------------------------------------------
-    // UPDATE MEMORY
-    // ---------------------------------------------
-
-    monthCache[month] =
-        monthData;
+    wrapper.appendChild(
+        restoreFile
+    );
 
 
-    if (
-        monthSelect.value ===
-        month
-    ) {
-
-        db =
-            monthData;
-
-        render();
-
-    }
+    resetMonthButton.insertAdjacentElement(
+        "afterend",
+        wrapper
+    );
 
 
-    return {
+    backupButton.onclick =
+        async function(){
 
-        success: true,
+            try{
 
-        expense: expense
+                const all =
+                    await idbGetAll();
 
-    };
 
-};
+                const backup = {
 
-// =====================================================
-// ANDROID WIDGET URL IMPORT
-// =====================================================
+                    app:
+                        "Expense Diary",
 
-async function checkAndroidWidgetEntry() {
+                    version:
+                        "0.5",
 
-    const params =
-        new URLSearchParams(
-            window.location.search
-        );
+                    exportedAt:
+                        new Date()
+                            .toISOString(),
 
-    if (
-        params.get("androidWidget") !== "1"
-    ) {
-        return;
-    }
+                    months:
+                        all
 
-    const amount =
-        Number(
-            params.get("amount")
-        );
+                };
 
-    const category =
-        params.get("category") || "Others";
 
-    if (
-        !amount ||
-        amount <= 0
-    ) {
-        return;
-    }
+                const blob =
+                    new Blob(
+                        [
+                            JSON.stringify(
+                                backup,
+                                null,
+                                2
+                            )
+                        ],
+                        {
+                            type:
+                                "application/json"
+                        }
+                    );
 
-    const result =
-        await window.addExpenseFromAndroidWidget(
-            amount,
-            category
-        );
 
-    if (
-        result &&
-        result.success
-    ) {
+                const url =
+                    URL.createObjectURL(
+                        blob
+                    );
 
-        // Remove widget parameters
-        // after successful save.
 
-        window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-        );
+                const link =
+                    document.createElement(
+                        "a"
+                    );
 
-    }
+
+                link.href =
+                    url;
+
+
+                link.download =
+                    "Expense_Diary_Backup_" +
+                    new Date()
+                        .toISOString()
+                        .slice(
+                            0,
+                            10
+                        ) +
+                    ".json";
+
+
+                document.body.appendChild(
+                    link
+                );
+
+
+                link.click();
+
+
+                document.body.removeChild(
+                    link
+                );
+
+
+                URL.revokeObjectURL(
+                    url
+                );
+
+
+                alert(
+                    "Backup downloaded successfully."
+                );
+
+            }
+            catch(error){
+
+                console.error(
+                    error
+                );
+
+
+                alert(
+                    "Backup could not be created."
+                );
+
+            }
+
+        };
+
+
+    restoreButton.onclick =
+        function(){
+
+            restoreFile.click();
+
+        };
+
+
+    restoreFile.onchange =
+        async function(){
+
+            const file =
+                restoreFile.files[0];
+
+
+            if(!file){
+
+                return;
+
+            }
+
+
+            try{
+
+                const text =
+                    await file.text();
+
+
+                const backup =
+                    JSON.parse(
+                        text
+                    );
+
+
+                if(
+                    !backup ||
+                    !Array.isArray(
+                        backup.months
+                    )
+                ){
+
+                    alert(
+                        "Invalid Expense Diary backup file."
+                    );
+
+                    return;
+
+                }
+
+
+                const confirmed =
+                    confirm(
+                        "Restore this backup?\n\n" +
+                        "Current Expense Diary data " +
+                        "for matching months will be replaced."
+                    );
+
+
+                if(!confirmed){
+
+                    restoreFile.value =
+                        "";
+
+                    return;
+
+                }
+
+
+                for(
+                    const item of
+                    backup.months
+                ){
+
+                    if(
+                        !item ||
+                        !item.month
+                    ){
+
+                        continue;
+
+                    }
+
+
+                    const normalized =
+                        normalizeMonthData(
+                            {
+
+                                income:
+                                    Number(
+                                        item.income
+                                    ) || 0,
+
+                                incomes:
+                                    Array.isArray(
+                                        item.incomes
+                                    )
+                                    ? item.incomes
+                                    : null,
+
+                                expenses:
+                                    Array.isArray(
+                                        item.expenses
+                                    )
+                                    ? item.expenses
+                                    : []
+
+                            },
+                            item.month
+                        );
+
+
+                    await idbPut(
+                        item.month,
+                        normalized.data
+                    );
+
+
+                    monthCache[
+                        item.month
+                    ] =
+                        normalized.data;
+
+                }
+
+
+                await loadMonth();
+
+
+                alert(
+                    "Backup restored successfully!"
+                );
+
+            }
+            catch(error){
+
+                console.error(
+                    error
+                );
+
+
+                alert(
+                    "Could not restore this backup file."
+                );
+
+            }
+            finally{
+
+                restoreFile.value =
+                    "";
+
+            }
+
+        };
+
 }
 
+
+// =====================================================
+// START BACKUP / RESTORE UI
+// =====================================================
+
+if(
+    document.readyState ===
+    "loading"
+){
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        createBackupRestoreUI
+    );
+
+}
+else{
+
+    createBackupRestoreUI();
+
+}
