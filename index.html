@@ -172,6 +172,9 @@
         <option value="categoryZA">Category Z → A</option>
         <option value="amountHigh">Amount High → Low</option>
         <option value="amountLow">Amount Low → High</option>
+        <option value="walletCash">Paid From: Cash</option>
+        <option value="walletCreditCard">Paid From: Credit Card</option>
+        <option value="walletUPI">Paid From: UPI</option>
     </select>
 
 </div>
@@ -205,8 +208,38 @@
     <div id="calendarDetails" class="calendar-details"></div>
 </section>
 <section class="chart-section">
+
     <h2>📊 Expense Breakdown</h2>
-    <canvas id="expensePieChart"></canvas>
+
+    <div class="charts-row">
+
+        <!-- Expense Category Pie Chart -->
+
+        <div class="chart-box">
+
+            <h3>Category-wise</h3>
+
+            <canvas
+                id="expensePieChart">
+            </canvas>
+
+        </div>
+
+
+        <!-- Paid From Bar Chart -->
+
+        <div class="chart-box">
+
+            <h3>Paid From</h3>
+
+            <canvas
+                id="expenseWalletChart">
+            </canvas>
+
+        </div>
+
+    </div>
+
 </section>
 
 </div>

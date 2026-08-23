@@ -445,3 +445,433 @@ footer{
     }
 
 }
+/* =====================================================
+   SIDE-BY-SIDE CHARTS
+   ===================================================== */
+
+.charts-row {
+
+    display: flex;
+
+    gap: 20px;
+
+    align-items: stretch;
+
+    width: 100%;
+
+}
+
+
+.chart-box {
+
+    flex: 1;
+
+    min-width: 0;
+
+    padding: 15px;
+
+    box-sizing: border-box;
+
+}
+
+
+.chart-box h3 {
+
+    text-align: center;
+
+    margin-top: 0;
+
+}
+
+
+.chart-box canvas {
+
+    width: 100% !important;
+
+    max-height: 320px;
+
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (max-width: 700px) {
+
+    .charts-row {
+
+        flex-direction: column;
+
+    }
+
+}
+/* =====================================================
+   SOFT COLOUR THEME
+   ===================================================== */
+
+body {
+    background: #f5f8fc;
+}
+
+
+/* =====================================================
+   HEADER
+   ===================================================== */
+
+header {
+    background: #eaf3ff;
+    border: 1px solid #d7e8fa;
+}
+
+
+/* =====================================================
+   MONTH SECTION
+   ===================================================== */
+
+.month-box {
+    background: #eef6ff;
+    border: 1px solid #d8e9f8;
+}
+
+
+/* =====================================================
+   COMPARISON
+   ===================================================== */
+
+.comparison-section {
+    background: #f0f7ff;
+    border: 1px solid #d9eafa;
+}
+
+
+/* =====================================================
+   CATEGORY COMPARISON
+   ===================================================== */
+
+.category-comparison-section {
+    background: #f6f1ff;
+    border: 1px solid #e6dcf5;
+}
+
+
+/* =====================================================
+   SUMMARY CARDS
+   ===================================================== */
+
+.summary .card:nth-child(1) {
+    background: #effaf3;
+    border-color: #d5eedc;
+}
+
+
+.summary .card:nth-child(2) {
+    background: #fff3f3;
+    border-color: #f2d8d8;
+}
+
+
+.summary .card:nth-child(3) {
+    background: #fff9e8;
+    border-color: #f1e5b9;
+}
+
+
+/* =====================================================
+   ADD EXPENSE
+   ===================================================== */
+
+.expense-form {
+    background: #eef7ff;
+    border: 1px solid #d7e9f8;
+}
+
+
+/* =====================================================
+   TRANSACTIONS
+   ===================================================== */
+
+.transaction-section {
+    background: #f8fafc;
+    border: 1px solid #e1e7ef;
+}
+
+
+.transaction-content {
+    background: #ffffff;
+}
+
+
+/* =====================================================
+   CALENDAR
+   ===================================================== */
+
+.calendar-section {
+    background: #f7f3ff;
+    border: 1px solid #e5dcf5;
+}
+
+
+/* =====================================================
+   CHARTS
+   ===================================================== */
+
+.chart-section {
+    background: #f0f7ff;
+    border: 1px solid #d8e9f8;
+}
+
+
+.chart-box {
+    background: #ffffff;
+    border: 1px solid #e2eaf2;
+    border-radius: 12px;
+}
+
+
+/* =====================================================
+   FORM INPUTS
+   ===================================================== */
+
+input,
+select {
+    background: #ffffff;
+    border: 1px solid #cfdbe8;
+}
+
+
+input:focus,
+select:focus {
+    border-color: #90bde8;
+    outline: none;
+}
+
+
+/* =====================================================
+   BUTTONS
+   ===================================================== */
+
+button {
+    border-radius: 8px;
+}
+
+
+/* =====================================================
+   TRANSACTION TABLE
+   ===================================================== */
+
+.transaction-section table {
+    background: #ffffff;
+}
+
+
+.transaction-section thead {
+    background: #edf4fb;
+}
+
+
+.transaction-section tbody tr:nth-child(even) {
+    background: #f8fafc;
+}
+
+
+/* =====================================================
+   CALENDAR DAYS
+   ===================================================== */
+
+.calendar-day {
+    background: #ffffff;
+    border: 1px solid #e2dcef;
+}
+
+
+.calendar-day:hover {
+    background: #eef5ff;
+}
+
+
+/* =====================================================
+   FOOTER
+   ===================================================== */
+
+footer {
+    background: #eef3f8;
+}
+
+/* =====================================================
+   COLOURFUL SOFT DASHBOARD THEME
+   ===================================================== */
+
+body {
+    background: #f3f7fc;
+}
+
+
+/* Header */
+
+header {
+    background: linear-gradient(
+        135deg,
+        #dff1ff,
+        #e9e1ff
+    );
+
+    border-color: #c9ddf2;
+}
+
+
+/* Month */
+
+.month-box {
+    background: #e3f2fd;
+    border-color: #b9d9f2;
+}
+
+
+/* Comparison */
+
+.comparison-section {
+    background: #e8f4ff;
+    border-color: #c5e0f5;
+}
+
+
+/* Category comparison */
+
+.category-comparison-section {
+    background: #f1e8ff;
+    border-color: #dfcef7;
+}
+
+
+/* Summary cards */
+
+.summary .card:nth-child(1) {
+    background: #e4f8ec;
+    border-color: #c5e8d2;
+}
+
+
+.summary .card:nth-child(2) {
+    background: #ffe8e8;
+    border-color: #f4cccc;
+}
+
+
+.summary .card:nth-child(3) {
+    background: #fff5d9;
+    border-color: #f0dfaa;
+}
+
+
+/* Add Expense */
+
+.expense-form {
+    background: #e3f5ff;
+    border-color: #bfe1f2;
+}
+
+
+/* Transactions */
+
+.transaction-section {
+    background: #fff0e6;
+    border-color: #f2d2bd;
+}
+
+
+.transaction-content {
+    background: #fffaf7;
+}
+
+
+/* Calendar */
+
+.calendar-section {
+    background: #eee8ff;
+    border-color: #d8cef2;
+}
+
+
+/* Charts */
+
+.chart-section {
+    background: #e4f7f7;
+    border-color: #c4e5e5;
+}
+
+
+.chart-box {
+    background: #ffffff;
+    border-color: #d7e8e8;
+}
+
+
+/* Inputs */
+
+input,
+select {
+    background: #ffffff;
+    border-color: #c8d7e5;
+}
+
+
+input:focus,
+select:focus {
+    border-color: #64b5f6;
+    box-shadow:
+        0 0 0 3px
+        rgba(100,181,246,0.15);
+
+    outline: none;
+}
+
+
+/* Transaction table */
+
+.transaction-section thead {
+    background: #ffe3d2;
+}
+
+
+.transaction-section tbody tr:nth-child(even) {
+    background: #fff8f3;
+}
+
+
+/* Calendar */
+
+.calendar-day {
+    background: #ffffff;
+    border-color: #dcd2ef;
+}
+
+
+.calendar-day:hover {
+    background: #e5f1ff;
+}
+
+
+/* Buttons */
+
+button {
+    border-radius: 9px;
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+
+button:hover {
+    transform: translateY(-1px);
+    box-shadow:
+        0 3px 8px
+        rgba(0,0,0,0.10);
+}
+
+
+/* Footer */
+
+footer {
+    background: #e5edf5;
+}

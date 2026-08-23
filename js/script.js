@@ -50,6 +50,14 @@ const expenseDate =
 const expenseAmount =
     document.getElementById("expenseAmount");
 
+if(expenseAmount){
+
+    expenseAmount.type = "text";
+
+    expenseAmount.inputMode = "decimal";
+
+}
+
 const expenseCategory =
     document.getElementById("expenseCategory");
 
@@ -1059,6 +1067,13 @@ function money(x){
             );
 
 }
+function pdfMoney(x){
+
+    return "Rs. " +
+        Number(x)
+            .toLocaleString("en-IN");
+
+}
 // =====================================================
 // MAIN RENDER
 // =====================================================
@@ -1364,6 +1379,47 @@ function render(){
             );
 
         }
+        else if(
+    transactionSort.value ===
+    "walletCash"
+){
+
+    transactions =
+        transactions.filter(
+            e =>
+                e.wallet ===
+                "Cash"
+        );
+
+}
+
+else if(
+    transactionSort.value ===
+    "walletCreditCard"
+){
+
+    transactions =
+        transactions.filter(
+            e =>
+                e.wallet ===
+                "Credit Card"
+        );
+
+}
+
+else if(
+    transactionSort.value ===
+    "walletUPI"
+){
+
+    transactions =
+        transactions.filter(
+            e =>
+                e.wallet ===
+                "UPI"
+        );
+
+}
 
     }
 
@@ -2347,7 +2403,194 @@ function renderExpensePieChart(){
         );
 
 }
+// =====================================================
+// PAID FROM BAR CHART
+// =====================================================
 
+let expenseWalletChart = null;
+
+
+function renderExpenseWalletChart(){
+
+    const canvas =
+        document.getElementById(
+            "expenseWalletChart"
+        );
+
+
+    if(
+        !canvas ||
+        typeof Chart ===
+        "undefined"
+    ){
+
+        return;
+
+    }
+
+
+    // ---------------------------------------------
+    // CALCULATE TOTAL BY PAID FROM
+    // ---------------------------------------------
+
+    const walletTotals =
+        {};
+
+
+    db.expenses.forEach(
+        expense => {
+
+            const wallet =
+                String(
+                    expense.wallet ||
+                    "Unknown"
+                ).trim();
+
+
+            if(
+                !walletTotals[
+                    wallet
+                ]
+            ){
+
+                walletTotals[
+                    wallet
+                ] = 0;
+
+            }
+
+
+            walletTotals[
+                wallet
+            ] += Number(
+                expense.amount
+            ) || 0;
+
+        }
+    );
+
+
+    const labels =
+        Object.keys(
+            walletTotals
+        );
+
+
+    const values =
+        Object.values(
+            walletTotals
+        );
+
+
+    // ---------------------------------------------
+    // REMOVE OLD CHART
+    // ---------------------------------------------
+
+    if(expenseWalletChart){
+
+        expenseWalletChart.destroy();
+
+        expenseWalletChart =
+            null;
+
+    }
+
+
+    // ---------------------------------------------
+    // NOTHING TO SHOW
+    // ---------------------------------------------
+
+    if(
+        values.length === 0
+    ){
+
+        return;
+
+    }
+
+
+    // ---------------------------------------------
+    // CREATE BAR CHART
+    // ---------------------------------------------
+
+    expenseWalletChart =
+        new Chart(
+            canvas,
+            {
+
+                type:
+                    "bar",
+
+                data: {
+
+                    labels:
+                        labels,
+
+                    datasets: [{
+
+                        label:
+                            "Expense",
+
+                        data:
+                            values
+
+                    }]
+
+                },
+
+                options: {
+
+                    responsive:
+                        true,
+
+                    maintainAspectRatio:
+                        false,
+
+                    plugins: {
+
+                        legend: {
+
+                            display:
+                                false
+
+                        }
+
+                    },
+
+                    scales: {
+
+                        y: {
+
+                            beginAtZero:
+                                true,
+
+                            ticks: {
+
+                                callback:
+                                    function(value){
+
+                                        return "₹ " +
+                                            Number(
+                                                value
+                                            )
+                                            .toLocaleString(
+                                                "en-IN"
+                                            );
+
+                                    }
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+}
 
 // =====================================================
 // CALENDAR DETAILS
@@ -2534,6 +2777,8 @@ render =
 
         renderExpensePieChart();
 
+        renderExpenseWalletChart();
+
     };
 
 
@@ -2692,22 +2937,137 @@ saveIncomeButton.onclick =
 
 
 // =====================================================
+// CALCULATE EXPENSE AMOUNT
+// =====================================================
+
+function calculateExpenseAmount(value){
+
+    const expression =
+        String(value ?? "")
+            .trim();
+
+    if(expression === ""){
+
+        return null;
+
+    }
+
+    // Normal number:
+    // 100
+    // 75.50
+
+    if(
+        /^[0-9]+(?:\.[0-9]+)?$/.test(
+            expression
+        )
+    ){
+
+        const number =
+            Number(
+                expression
+            );
+
+        return Number.isFinite(number) &&
+               number > 0
+            ? number
+            : null;
+
+    }
+
+
+    // Addition:
+    // 15+58+75
+    // 15 + 58 + 75
+
+    if(
+        !/^[0-9.\s+]+$/.test(
+            expression
+        )
+    ){
+
+        return null;
+
+    }
+
+
+    const parts =
+        expression
+            .split("+")
+            .map(
+                x =>
+                    x.trim()
+            );
+
+
+    if(
+        parts.length < 2 ||
+        parts.some(
+            x =>
+                !/^[0-9]+(?:\.[0-9]+)?$/.test(
+                    x
+                )
+        )
+    ){
+
+        return null;
+
+    }
+
+
+    const total =
+        parts.reduce(
+            (sum, part) =>
+                sum +
+                Number(part),
+            0
+        );
+
+
+    return Number.isFinite(total) &&
+           total > 0
+        ? total
+        : null;
+
+}
+
+
+// =====================================================
 // SAVE / UPDATE EXPENSE
 // =====================================================
 
 saveExpenseButton.onclick =
     async () => {
 
-        if(!expenseAmount.value){
+        // ---------------------------------------------
+        // CALCULATE AMOUNT
+        // ---------------------------------------------
+
+        const calculatedAmount =
+            calculateExpenseAmount(
+                expenseAmount.value
+            );
+
+
+        if(
+            calculatedAmount === null
+        ){
 
             alert(
-                "Enter expense"
+                "Enter a valid amount.\n\n" +
+                "Example:\n" +
+                "15+58+75\n" +
+                "or\n" +
+                "15 + 58 + 75"
             );
 
             return;
 
         }
 
+
+        // ---------------------------------------------
+        // CHECK DATE
+        // ---------------------------------------------
 
         if(
             !expenseDate.value
@@ -2737,13 +3097,12 @@ saveExpenseButton.onclick =
         }
 
 
-        // =================================================
-        // EDIT EXISTING EXPENSE
-        // =================================================
+        // ---------------------------------------------
+        // UPDATE EXISTING EXPENSE
+        // ---------------------------------------------
 
         if(
-            editingExpenseId !==
-            null
+            editingExpenseId !== null
         ){
 
             const expense =
@@ -2759,20 +3118,14 @@ saveExpenseButton.onclick =
                 expense.date =
                     expenseDate.value;
 
-
                 expense.amount =
-                    Number(
-                        expenseAmount.value
-                    );
-
+                    calculatedAmount;
 
                 expense.category =
                     expenseCategory.value;
 
-
                 expense.wallet =
                     expenseWallet.value;
-
 
                 expense.description =
                     expenseDescription.value;
@@ -2783,16 +3136,15 @@ saveExpenseButton.onclick =
             editingExpenseId =
                 null;
 
-
             saveExpenseButton.innerText =
                 "Save Expense";
 
         }
 
 
-        // =================================================
+        // ---------------------------------------------
         // ADD NEW EXPENSE
-        // =================================================
+        // ---------------------------------------------
 
         else{
 
@@ -2805,9 +3157,7 @@ saveExpenseButton.onclick =
                     expenseDate.value,
 
                 amount:
-                    Number(
-                        expenseAmount.value
-                    ),
+                    calculatedAmount,
 
                 category:
                     expenseCategory.value,
@@ -2823,11 +3173,23 @@ saveExpenseButton.onclick =
         }
 
 
+        // ---------------------------------------------
+        // SAVE TO INDEXEDDB
+        // ---------------------------------------------
+
         await saveMonth();
 
 
+        // ---------------------------------------------
+        // REFRESH APP
+        // ---------------------------------------------
+
         render();
 
+
+        // ---------------------------------------------
+        // CLEAR INPUT
+        // ---------------------------------------------
 
         expenseAmount.value =
             "";
@@ -3588,6 +3950,10 @@ if(
 // PDF REPORT
 // =====================================================
 
+// =====================================================
+// PDF REPORT — DETAILED VERSION
+// =====================================================
+
 if(downloadPdfButton){
 
     downloadPdfButton.onclick =
@@ -3613,17 +3979,25 @@ if(downloadPdfButton){
                 window.jspdf;
 
 
-            const doc =
-                new jsPDF();
-
-
             const month =
                 monthSelect.value;
 
 
             const expenses =
-                db.expenses || [];
+                Array.isArray(db.expenses)
+                ? [...db.expenses]
+                : [];
 
+
+            const incomes =
+                Array.isArray(db.incomes)
+                ? [...db.incomes]
+                : [];
+
+
+            // =================================================
+            // TOTALS
+            // =================================================
 
             const totalExpense =
                 expenses.reduce(
@@ -3637,7 +4011,7 @@ if(downloadPdfButton){
 
 
             const totalIncome =
-                (db.incomes || []).reduce(
+                incomes.reduce(
                     (sum,item) =>
                         sum +
                         Number(
@@ -3652,9 +4026,95 @@ if(downloadPdfButton){
                 totalExpense;
 
 
+            // =================================================
+            // CATEGORY TOTALS
+            // =================================================
+
+            const categoryTotals =
+                {};
+
+
+            expenses.forEach(
+                e => {
+
+                    const category =
+                        e.category ||
+                        "Others";
+
+
+                    categoryTotals[
+                        category
+                    ] =
+                        (
+                            categoryTotals[
+                                category
+                            ] || 0
+                        ) +
+                        Number(
+                            e.amount
+                        );
+
+                }
+            );
+
+
+            // =================================================
+            // WALLET / PAID FROM TOTALS
+            // =================================================
+
+            const walletTotals =
+                {};
+
+
+            expenses.forEach(
+                e => {
+
+                    const wallet =
+                        e.wallet ||
+                        "Unknown";
+
+
+                    walletTotals[
+                        wallet
+                    ] =
+                        (
+                            walletTotals[
+                                wallet
+                            ] || 0
+                        ) +
+                        Number(
+                            e.amount
+                        );
+
+                }
+            );
+
+
+            // =================================================
+            // CREATE PDF
+            // =================================================
+
+            const doc =
+                new jsPDF();
+                doc.setFillColor(248, 250, 253);
+doc.rect(
+    0,
+    0,
+    210,
+    297,
+    "F"
+);
+
+
+            // =================================================
+            // PAGE 1 — SUMMARY
+            // =================================================
+
             doc.setFontSize(
                 18
             );
+
+            doc.setTextColor(21, 101, 192);
 
 
             doc.text(
@@ -3663,6 +4123,8 @@ if(downloadPdfButton){
                 18
             );
 
+            doc.setTextColor(40, 55, 75);
+
 
             doc.setFontSize(
                 11
@@ -3670,27 +4132,24 @@ if(downloadPdfButton){
 
 
             doc.text(
-                "Month: " +
-                month,
+                "Monthly Expense Report",
                 14,
-                28
+                26
             );
 
 
             doc.text(
-                "Total Income: " +
-                money(
-                    totalIncome
-                ),
+                "Month: " +
+                month,
                 14,
                 36
             );
 
 
             doc.text(
-                "Total Expense: " +
-                money(
-                    totalExpense
+                "Total Income: " +
+                pdfMoney(
+                    totalIncome
                 ),
                 14,
                 44
@@ -3698,23 +4157,180 @@ if(downloadPdfButton){
 
 
             doc.text(
-                "Remaining: " +
-                money(
-                    remaining
+                "Total Expense: " +
+                pdfMoney(
+                    totalExpense
                 ),
                 14,
                 52
             );
 
 
+            doc.text(
+                "Remaining: " +
+                pdfMoney(
+                    remaining
+                ),
+                14,
+                60
+            );
+
+
+            doc.text(
+                "Total Transactions: " +
+                expenses.length,
+                14,
+                68
+            );
+
+
+            // =================================================
+            // INCOME BREAKDOWN
+            // =================================================
+
             let y =
-                65;
+                82;
 
 
             doc.setFontSize(
-                10
+                13
             );
 
+
+            doc.text(
+                "Income Breakdown",
+                14,
+                y
+            );
+
+
+            y += 8;
+
+
+            doc.setFontSize(
+                9
+            );
+
+
+            if(
+                incomes.length === 0
+            ){
+
+                doc.text(
+                    "No income entries.",
+                    14,
+                    y
+                );
+
+                y += 8;
+
+            }
+            else{
+
+                const sortedIncomes =
+                    [...incomes].sort(
+                        (a,b) =>
+                            new Date(
+                                a.date
+                            ) -
+                            new Date(
+                                b.date
+                            )
+                    );
+
+
+                sortedIncomes.forEach(
+                    income => {
+
+                        if(
+                            y > 275
+                        ){
+
+                            doc.addPage();
+
+                            y = 20;
+
+                        }
+
+
+                        doc.text(
+                            String(
+                                income.date ||
+                                ""
+                            ),
+                            14,
+                            y
+                        );
+
+
+                        doc.text(
+                            pdfMoney(
+                                income.amount
+                            ),
+                            70,
+                            y
+                        );
+
+
+                        y += 6;
+
+                    }
+                );
+
+            }
+
+
+            // =================================================
+            // TRANSACTION TABLE
+            // =================================================
+
+            y += 8;
+
+
+            if(
+                y > 260
+            ){
+
+                doc.addPage();
+
+                y = 20;
+
+            }
+
+
+            doc.setFontSize(
+                13
+            );
+
+
+            doc.text(
+                "Expense Transactions",
+                14,
+                y
+            );
+
+
+            y += 8;
+
+
+            doc.setFontSize(
+                8
+            );
+
+            doc.setFillColor(225, 240, 250);
+
+doc.rect(
+    10,
+    y - 5,
+    190,
+    8,
+    "F"
+);
+
+doc.setTextColor(25, 80, 130);
+
+
+            // Header
 
             doc.text(
                 "Date",
@@ -3725,40 +4341,273 @@ if(downloadPdfButton){
 
             doc.text(
                 "Category",
-                42,
+                40,
                 y
             );
 
 
             doc.text(
-                "Wallet",
-                85,
+                "Paid From",
+                75,
                 y
             );
 
 
             doc.text(
                 "Amount",
-                125,
+                115,
                 y
             );
 
 
             doc.text(
                 "Description",
-                155,
+                145,
                 y
             );
 
 
-            y += 7;
+            y += 6;
+
+            doc.setTextColor(40, 55, 75);
 
 
-            expenses.forEach(
-                expense => {
+            // Separator
+
+            doc.line(
+                14,
+                y - 3,
+                195,
+                y - 3
+            );
+
+
+            expenses
+                .sort(
+                    (a,b) =>
+                        new Date(
+                            a.date
+                        ) -
+                        new Date(
+                            b.date
+                        )
+                )
+                .forEach(
+                    expense => {
+
+                        if(
+                            y > 280
+                        ){
+
+                            doc.addPage();
+
+                            y = 20;
+
+
+                            doc.setFontSize(
+                                8
+                            );
+
+
+                            doc.text(
+                                "Date",
+                                14,
+                                y
+                            );
+
+
+                            doc.text(
+                                "Category",
+                                40,
+                                y
+                            );
+
+
+                            doc.text(
+                                "Paid From",
+                                75,
+                                y
+                            );
+
+
+                            doc.text(
+                                "Amount",
+                                115,
+                                y
+                            );
+
+
+                            doc.text(
+                                "Description",
+                                145,
+                                y
+                            );
+
+
+                            y += 7;
+
+                        }
+
+
+                        doc.text(
+                            String(
+                                expense.date ||
+                                ""
+                            ),
+                            14,
+                            y
+                        );
+
+
+                        doc.text(
+                            String(
+                                expense.category ||
+                                ""
+                            ).slice(
+                                0,
+                                18
+                            ),
+                            40,
+                            y
+                        );
+
+
+                        doc.text(
+                            String(
+                                expense.wallet ||
+                                ""
+                            ).slice(
+                                0,
+                                18
+                            ),
+                            75,
+                            y
+                        );
+
+
+                        doc.text(
+                            pdfMoney(
+                                expense.amount
+                            ),
+                            115,
+                            y
+                        );
+
+
+                        doc.text(
+                            String(
+                                expense.description ||
+                                ""
+                            ).slice(
+                                0,
+                                25
+                            ),
+                            145,
+                            y
+                        );
+
+
+                        y += 6;
+
+                    }
+                );
+
+
+            // =================================================
+            // TOTAL
+            // =================================================
+
+            if(
+                y > 275
+            ){
+
+                doc.addPage();
+
+                y = 20;
+
+            }
+
+
+            y += 5;
+
+
+            doc.setFontSize(
+                11
+            );
+
+
+            doc.text(
+                "Total Expense: " +
+                pdfMoney(
+                    totalExpense
+                ),
+                14,
+                y
+            );
+
+
+            // =================================================
+            // PAGE 2 — CHART / BREAKDOWN
+            // =================================================
+
+            doc.addPage();
+
+
+            y = 20;
+
+
+            doc.setFontSize(
+                17
+            );
+
+
+            doc.text(
+                "Expense Breakdown",
+                14,
+                y
+            );
+
+
+            y += 12;
+
+
+            // =================================================
+            // CATEGORY BREAKDOWN
+            // =================================================
+
+            doc.setFontSize(
+                12
+            );
+
+
+            doc.text(
+                "Category-wise Expense",
+                14,
+                y
+            );
+
+
+            y += 8;
+
+
+            doc.setFontSize(
+                9
+            );
+
+
+            Object.entries(
+                categoryTotals
+            )
+            .sort(
+                (a,b) =>
+                    b[1] -
+                    a[1]
+            )
+            .forEach(
+                ([category, amount]) => {
 
                     if(
-                        y > 280
+                        y > 275
                     ){
 
                         doc.addPage();
@@ -3769,55 +4618,17 @@ if(downloadPdfButton){
 
 
                     doc.text(
-                        String(
-                            expense.date ||
-                            ""
-                        ),
+                        category,
                         14,
                         y
                     );
 
 
                     doc.text(
-                        String(
-                            expense.category ||
-                            ""
+                        pdfMoney(
+                            amount
                         ),
-                        42,
-                        y
-                    );
-
-
-                    doc.text(
-                        String(
-                            expense.wallet ||
-                            ""
-                        ),
-                        85,
-                        y
-                    );
-
-
-                    doc.text(
-                        String(
-                            money(
-                                expense.amount
-                            )
-                        ),
-                        125,
-                        y
-                    );
-
-
-                    doc.text(
-                        String(
-                            expense.description ||
-                            ""
-                        ).slice(
-                            0,
-                            25
-                        ),
-                        155,
+                        100,
                         y
                     );
 
@@ -3827,6 +4638,253 @@ if(downloadPdfButton){
                 }
             );
 
+
+            // =================================================
+            // PAID FROM BREAKDOWN
+            // =================================================
+
+            y += 8;
+
+
+            if(
+                y > 250
+            ){
+
+                doc.addPage();
+
+                y = 20;
+
+            }
+
+
+            doc.setFontSize(
+                12
+            );
+
+
+            doc.text(
+                "Paid From Breakdown",
+                14,
+                y
+            );
+
+
+            y += 8;
+
+
+            doc.setFontSize(
+                9
+            );
+
+
+            Object.entries(
+                walletTotals
+            )
+            .sort(
+                (a,b) =>
+                    b[1] -
+                    a[1]
+            )
+            .forEach(
+                ([wallet, amount]) => {
+
+                    if(
+                        y > 275
+                    ){
+
+                        doc.addPage();
+
+                        y = 20;
+
+                    }
+
+
+                    doc.text(
+                        wallet,
+                        14,
+                        y
+                    );
+
+
+                    doc.text(
+                        pdfMoney(
+                            amount
+                        ),
+                        100,
+                        y
+                    );
+
+
+                    y += 6;
+
+                }
+            );
+
+
+            // =================================================
+            // CHARTS FROM CURRENT APP
+            // =================================================
+
+            const pieCanvas =
+                document.getElementById(
+                    "expensePieChart"
+                );
+
+
+            const walletCanvas =
+                document.getElementById(
+                    "expenseWalletChart"
+                );
+
+
+            // -------------------------------------------------
+            // PIE CHART
+            // -------------------------------------------------
+
+            if(pieCanvas){
+
+                try{
+
+                    const pieImage =
+                        pieCanvas.toDataURL(
+                            "image/png",
+                            1.0
+                        );
+
+
+                    if(
+                        y > 180
+                    ){
+
+                        doc.addPage();
+
+                        y = 20;
+
+                    }
+
+
+                    doc.setFontSize(
+                        12
+                    );
+
+
+                    doc.text(
+                        "Category Expense Chart",
+                        14,
+                        y
+                    );
+
+
+                    y += 5;
+
+
+                    doc.addImage(
+                        pieImage,
+                        "PNG",
+                        15,
+                        y,
+                        80,
+                        80
+                    );
+
+
+                }
+                catch(error){
+
+                    console.warn(
+                        "Could not add pie chart:",
+                        error
+                    );
+
+                }
+
+            }
+
+
+            // -------------------------------------------------
+            // PAID FROM BAR CHART
+            // -------------------------------------------------
+
+            if(walletCanvas){
+
+                try{
+
+                    const walletImage =
+                        walletCanvas.toDataURL(
+                            "image/png",
+                            1.0
+                        );
+
+
+                    doc.addImage(
+                        walletImage,
+                        "PNG",
+                        105,
+                        y,
+                        90,
+                        80
+                    );
+
+
+                }
+                catch(error){
+
+                    console.warn(
+                        "Could not add wallet chart:",
+                        error
+                    );
+
+                }
+
+            }
+
+
+            // =================================================
+            // FOOTER / PAGE NUMBERS
+            // =================================================
+
+            const pageCount =
+                doc.internal.getNumberOfPages();
+
+
+            for(
+                let page = 1;
+                page <= pageCount;
+                page++
+            ){
+
+                doc.setPage(
+                    page
+                );
+
+
+                doc.setFontSize(
+                    8
+                );
+
+
+                doc.text(
+                    "Expense Diary | Developed by Dr. Soumya Chatterjee © 2026",
+                    14,
+                    290
+                );
+
+
+                doc.text(
+                    "Page " +
+                    page +
+                    " of " +
+                    pageCount,
+                    170,
+                    290
+                );
+
+            }
+
+
+            // =================================================
+            // SAVE
+            // =================================================
 
             doc.save(
                 "Expense_Diary_" +
