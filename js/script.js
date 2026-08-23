@@ -4164,7 +4164,7 @@ initStorage()
     .then(
         function(){
 
-            importAndroidWidgetExpense();
+            checkAndroidWidgetEntry();
 
         }
     );
@@ -4331,97 +4331,66 @@ document.addEventListener(
 );
 
 // =====================================================
-// ANDROID WIDGET → PWA INDEXEDDB IMPORT
+// ANDROID WIDGET BRIDGE
 // =====================================================
 
-async function importAndroidWidgetExpense() {
+window.addExpenseFromAndroidWidget = async function (
+    amount,
+    category
+) {
 
-    const params =
-        new URLSearchParams(
-            window.location.search
-        );
+    amount = Number(amount);
 
-
-    if(
-        params.get(
-            "androidWidget"
-        ) !== "1"
-    ){
-
-        return;
-
-    }
+    category =
+        String(category || "Others").trim();
 
 
-    const amount =
-        Number(
-            params.get(
-                "amount"
-            )
-        );
+    // ---------------------------------------------
+    // BASIC VALIDATION
+    // ---------------------------------------------
 
-
-    const category =
-        params.get(
-            "category"
-        ) || "Others";
-
-
-    const date =
-        params.get(
-            "date"
-        );
-
-
-    const uniqueId =
-        params.get(
-            "id"
-        );
-
-
-    if(
+    if (
         !amount ||
-        amount <= 0 ||
-        !date ||
-        !uniqueId
-    ){
+        amount <= 0
+    ) {
 
-        return;
-
-    }
-
-
-    // Prevent duplicate import
-    const importedKey =
-        "androidWidgetImported_" +
-        uniqueId;
-
-
-    if(
-        localStorage.getItem(
-            importedKey
-        )
-    ){
-
-        return;
+        return {
+            success: false,
+            message: "Invalid amount"
+        };
 
     }
+
+
+    // ---------------------------------------------
+    // TODAY'S DATE
+    // ---------------------------------------------
+
+    const today =
+        new Date()
+            .toISOString()
+            .slice(
+                0,
+                10
+            );
 
 
     const month =
-        date.slice(
+        today.slice(
             0,
             7
         );
 
 
+    // ---------------------------------------------
+    // GET MONTH DATA
+    // ---------------------------------------------
+
     let monthData =
-        monthCache[
-            month
-        ];
+        monthCache[month];
 
 
-    if(!monthData){
+    if (!monthData) {
 
         monthData = {
 
@@ -4436,26 +4405,28 @@ async function importAndroidWidgetExpense() {
     }
 
 
-    if(
+    if (
         !Array.isArray(
             monthData.expenses
         )
-    ){
+    ) {
 
         monthData.expenses = [];
 
     }
 
 
-    monthData.expenses.push({
+    // ---------------------------------------------
+    // CREATE EXPENSE
+    // ---------------------------------------------
+
+    const expense = {
 
         _id:
-            Number(
-                uniqueId
-            ),
+            Date.now(),
 
         date:
-            date,
+            today,
 
         amount:
             amount,
@@ -4467,13 +4438,23 @@ async function importAndroidWidgetExpense() {
             "Cash",
 
         description:
-            "Added from Android widget"
+            ""
 
-    });
+    };
 
 
-    // Save into the SAME IndexedDB
-    // used by the PWA.
+    // ---------------------------------------------
+    // ADD TO EXISTING EXPENSE ARRAY
+    // ---------------------------------------------
+
+    monthData.expenses.push(
+        expense
+    );
+
+
+    // ---------------------------------------------
+    // SAVE USING EXISTING INDEXEDDB
+    // ---------------------------------------------
 
     await idbPut(
         month,
@@ -4481,27 +4462,18 @@ async function importAndroidWidgetExpense() {
     );
 
 
-    monthCache[
-        month
-    ] =
+    // ---------------------------------------------
+    // UPDATE MEMORY
+    // ---------------------------------------------
+
+    monthCache[month] =
         monthData;
 
 
-    // Mark as imported
-
-    localStorage.setItem(
-        importedKey,
-        "1"
-    );
-
-
-    // If imported month is currently selected,
-    // refresh the display.
-
-    if(
+    if (
         monthSelect.value ===
         month
-    ){
+    ) {
 
         db =
             monthData;
@@ -4511,14 +4483,68 @@ async function importAndroidWidgetExpense() {
     }
 
 
-    // Remove query parameters from URL
-    // after successful import.
+    return {
 
-    window.history.replaceState(
-        {},
-        document.title,
-        window.location.pathname
-    );
+        success: true,
 
+        expense: expense
+
+    };
+
+};
+
+// =====================================================
+// ANDROID WIDGET URL IMPORT
+// =====================================================
+
+async function checkAndroidWidgetEntry() {
+
+    const params =
+        new URLSearchParams(
+            window.location.search
+        );
+
+    if (
+        params.get("androidWidget") !== "1"
+    ) {
+        return;
+    }
+
+    const amount =
+        Number(
+            params.get("amount")
+        );
+
+    const category =
+        params.get("category") || "Others";
+
+    if (
+        !amount ||
+        amount <= 0
+    ) {
+        return;
+    }
+
+    const result =
+        await window.addExpenseFromAndroidWidget(
+            amount,
+            category
+        );
+
+    if (
+        result &&
+        result.success
+    ) {
+
+        // Remove widget parameters
+        // after successful save.
+
+        window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+        );
+
+    }
 }
 
