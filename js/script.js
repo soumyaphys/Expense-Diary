@@ -54,7 +54,7 @@ if(expenseAmount){
 
     expenseAmount.type = "text";
 
-    expenseAmount.inputMode = "decimal";
+    expenseAmount.inputMode = "text";
 
 }
 
@@ -2952,35 +2952,13 @@ function calculateExpenseAmount(value){
 
     }
 
-    // Normal number:
-    // 100
-    // 75.50
+
+    // ---------------------------------------------
+    // ONLY NUMBERS + + - * /
+    // ---------------------------------------------
 
     if(
-        /^[0-9]+(?:\.[0-9]+)?$/.test(
-            expression
-        )
-    ){
-
-        const number =
-            Number(
-                expression
-            );
-
-        return Number.isFinite(number) &&
-               number > 0
-            ? number
-            : null;
-
-    }
-
-
-    // Addition:
-    // 15+58+75
-    // 15 + 58 + 75
-
-    if(
-        !/^[0-9.\s+]+$/.test(
+        !/^[0-9.\s+\-*/]+$/.test(
             expression
         )
     ){
@@ -2990,22 +2968,13 @@ function calculateExpenseAmount(value){
     }
 
 
-    const parts =
-        expression
-            .split("+")
-            .map(
-                x =>
-                    x.trim()
-            );
-
+    // ---------------------------------------------
+    // BASIC VALIDATION
+    // ---------------------------------------------
 
     if(
-        parts.length < 2 ||
-        parts.some(
-            x =>
-                !/^[0-9]+(?:\.[0-9]+)?$/.test(
-                    x
-                )
+        /[+\-*/]\s*[+\-*/]/.test(
+            expression
         )
     ){
 
@@ -3014,19 +2983,209 @@ function calculateExpenseAmount(value){
     }
 
 
-    const total =
-        parts.reduce(
-            (sum, part) =>
-                sum +
-                Number(part),
-            0
+    // ---------------------------------------------
+    // TOKENIZE
+    // ---------------------------------------------
+
+    const tokens =
+        expression.match(
+            /(\d+(?:\.\d+)?)|([+\-*/])/g
         );
 
 
-    return Number.isFinite(total) &&
-           total > 0
-        ? total
-        : null;
+    if(!tokens){
+
+        return null;
+
+    }
+
+
+    // ---------------------------------------------
+    // CHECK COMPLETE EXPRESSION
+    // ---------------------------------------------
+
+    const cleaned =
+        tokens.join("");
+
+    const original =
+        expression.replace(
+            /\s+/g,
+            ""
+        );
+
+    if(
+        cleaned !== original
+    ){
+
+        return null;
+
+    }
+
+
+    if(
+        /^[+*/]/.test(
+            cleaned
+        ) ||
+        /[+\-*/]$/.test(
+            cleaned
+        )
+    ){
+
+        return null;
+
+    }
+
+
+    // ---------------------------------------------
+    // FIRST: * AND /
+    // ---------------------------------------------
+
+    const values = [];
+    const operators = [];
+
+
+    for(
+        const token of tokens
+    ){
+
+        if(
+            /^[0-9.]+$/.test(
+                token
+            )
+        ){
+
+            values.push(
+                Number(token)
+            );
+
+        }
+        else{
+
+            operators.push(
+                token
+            );
+
+        }
+
+    }
+
+
+    // ---------------------------------------------
+    // MULTIPLICATION / DIVISION
+    // ---------------------------------------------
+
+    let numbers = [
+        values[0]
+    ];
+
+    let newOperators = [];
+
+
+    for(
+        let i = 0;
+        i < operators.length;
+        i++
+    ){
+
+        const operator =
+            operators[i];
+
+        const next =
+            values[i + 1];
+
+
+        if(
+            operator === "*"
+        ){
+
+            numbers[
+                numbers.length - 1
+            ] *= next;
+
+        }
+        else if(
+            operator === "/"
+        ){
+
+            if(
+                next === 0
+            ){
+
+                return null;
+
+            }
+
+            numbers[
+                numbers.length - 1
+            ] /= next;
+
+        }
+        else{
+
+            numbers.push(
+                next
+            );
+
+            newOperators.push(
+                operator
+            );
+
+        }
+
+    }
+
+
+    // ---------------------------------------------
+    // ADDITION / SUBTRACTION
+    // ---------------------------------------------
+
+    let total =
+        numbers[0];
+
+
+    for(
+        let i = 0;
+        i < newOperators.length;
+        i++
+    ){
+
+        if(
+            newOperators[i] === "+"
+        ){
+
+            total +=
+                numbers[i + 1];
+
+        }
+        else if(
+            newOperators[i] === "-"
+        ){
+
+            total -=
+                numbers[i + 1];
+
+        }
+
+    }
+
+
+    // ---------------------------------------------
+    // FINAL VALIDATION
+    // ---------------------------------------------
+
+    if(
+        !Number.isFinite(
+            total
+        ) ||
+        total <= 0
+    ){
+
+        return null;
+
+    }
+
+
+    return total;
 
 }
 
