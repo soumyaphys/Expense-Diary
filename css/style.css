@@ -875,3 +875,21 @@ button:hover {
 footer {
     background: #e5edf5;
 }
+.backup-section {
+    background: #fff8e1;
+    border: 1px solid #f1dfaa;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.backup-section h2 {
+    margin-top: 0;
+}
+
+.backup-note {
+    margin: 0;
+    color: #5f4b00;
+    font-size: 13px;
+    line-height: 1.5;
+}
