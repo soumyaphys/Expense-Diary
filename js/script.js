@@ -3385,6 +3385,23 @@ monthSelect.onchange =
 
         }
 
+        // Clear previous month's
+        // calendar date breakdown
+        const calendarDetails =
+            document.getElementById(
+                "calendarDetails"
+            );
+
+        if(calendarDetails){
+
+            calendarDetails.innerHTML =
+                "";
+
+            calendarDetails.style.display =
+                "none";
+
+        }
+
 
         loadMonth();
 
