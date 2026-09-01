@@ -207,6 +207,55 @@
     <div id="calendar"></div>
     <div id="calendarDetails" class="calendar-details"></div>
 </section>
+<section
+    class="reminder-section"
+    id="reminderSection"
+>
+
+    <h2>🔔 Payment Reminders</h2>
+
+    <button id="addReminderButton">
+        ➕ Add Payment Reminder
+    </button>
+
+    <div id="reminderForm" class="reminder-form" style="display:none;">
+
+        <label>Date</label>
+        <input type="date" id="reminderDate">
+
+        <label>Reminder</label>
+        <input
+            type="text"
+            id="reminderTitle"
+            placeholder="e.g. Credit Card Bill"
+        >
+
+        <label>Repeat</label>
+        <select id="reminderRepeat">
+            <option value="once">One Time</option>
+            <option value="monthly">Every Month</option>
+        </select>
+
+        <label>Reminder Alert</label>
+        <select id="reminderAlert">
+            <option value="1day">1 Day Before</option>
+            <option value="same">On Due Date</option>
+        </select>
+
+        <button id="saveReminderButton">
+            Save Reminder
+        </button>
+
+        <button
+            id="cancelReminderButton"
+            type="button"
+        >
+            Cancel
+        </button>
+
+    </div>
+
+</section>
 <section class="backup-section">
 
     <h2>💾 Backup & Restore</h2>

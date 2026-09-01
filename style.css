@@ -1,0 +1,990 @@
+/* Expense Diary v0.6 */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    background:#f4f6f9;
+    padding:25px;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+}
+
+header{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+header h1{
+    color:#1565c0;
+    margin-bottom:8px;
+}
+
+.month-box{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+.month-box label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:bold;
+}
+
+.month-box select{
+    width:250px;
+    padding:10px;
+    border-radius:8px;
+}
+
+.summary{
+    display:flex;
+    gap:20px;
+    margin-bottom:30px;
+}
+
+.card{
+    flex:1;
+    background:#fff;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+}
+
+.card h3{
+    margin-bottom:10px;
+}
+
+.card h2{
+    color:#1565c0;
+    margin-bottom:15px;
+}
+
+.card input,
+.card button{
+    width:100%;
+}
+
+input,select{
+    width:100%;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:8px;
+}
+
+button{
+    margin-top:10px;
+    padding:12px;
+    background:#1565c0;
+    color:white;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#0d47a1;
+}
+
+.expense-form,
+.transaction-section,
+.calendar-section{
+    background:#fff;
+    padding:25px;
+    margin-top:30px;
+    border-radius:12px;
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+}
+
+.expense-form h2,
+.transaction-section h2,
+.calendar-section h2{
+    color:#1565c0;
+    margin-bottom:20px;
+}
+
+.row{
+    display:flex;
+    gap:20px;
+    margin-bottom:15px;
+}
+
+.field{
+    flex:1;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    background:#1565c0;
+    color:#fff;
+    padding:10px;
+}
+
+td{
+    padding:10px;
+    text-align:center;
+    border-bottom:1px solid #ddd;
+}
+
+/* Calendar Grid */
+#calendar{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:10px;
+}
+
+.calendar-day{
+    min-height:90px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:8px;
+    background:#fafafa;
+}
+
+.calendar-day .date{
+    font-weight:bold;
+}
+
+.calendar-day {
+    cursor: pointer;
+}
+
+.calendar-day .amount{
+    color:#1565c0;
+    margin-top:8px;
+    font-size:14px;
+}
+
+@media(max-width:768px){
+    .summary,
+    .row{
+        flex-direction:column;
+    }
+
+    #calendar{
+        grid-template-columns:repeat(2,1fr);
+    }
+}
+
+#resetMonthButton{
+
+    width:250px;
+
+    background:#d32f2f;
+
+    color:white;
+
+    border:none;
+
+    padding:12px;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+}
+
+#resetMonthButton:hover{
+
+    background:#b71c1c;
+
+}
+
+/* ---------- Previous Month Comparison ---------- */
+
+.comparison-section{
+
+    margin:20px 0;
+
+    padding:15px;
+
+    background:#e8f5e9;
+
+    border-left:6px solid #4caf50;
+
+    border-radius:8px;
+
+    font-size:18px;
+
+    font-weight:bold;
+
+}
+
+#comparisonText{
+
+    color:#2e7d32;
+
+}
+
+footer{
+
+    margin-top:40px;
+
+    text-align:center;
+
+    color:#777;
+
+    font-size:14px;
+
+    padding:15px;
+
+}
+
+.transaction-controls {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0 15px;
+    flex-wrap: wrap;
+}
+
+.transaction-controls select {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: white;
+    font-size: 14px;
+}
+
+.calendar-day .amount {
+    color: #e65100 !important;
+    font-weight: 700;
+    font-size: 13px;
+    margin-top: 8px;
+}
+
+.calendar-day .expense-amount {
+    color: #e65100 !important;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.calendar-day .zero-amount {
+    color: #1565c0 !important;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.calendar-details {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 10px;
+    background: #f5f7fa;
+    border: 1px solid #ddd;
+    display: none;
+}
+
+.calendar-details h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+}
+
+.calendar-detail-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.calendar-detail-total {
+    text-align: right;
+    font-weight: bold;
+    margin-top: 12px;
+    font-size: 16px;
+}
+
+.calendar-details {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 12px;
+    background: #eef5ff;
+    border: 1px solid #90caf9;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.calendar-details h3 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    color: #1565c0;
+    font-size: 17px;
+}
+
+.calendar-detail-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    padding: 9px 5px;
+    border-bottom: 1px solid #c5d8ee;
+    font-size: 14px;
+}
+
+.calendar-detail-row span:nth-child(1) {
+    color: #1565c0;
+    font-weight: 600;
+}
+
+.calendar-detail-row span:nth-child(2) {
+    color: #555;
+}
+
+.calendar-detail-row span:nth-child(3) {
+    color: #e65100;
+    font-weight: 700;
+    text-align: right;
+}
+
+.calendar-detail-total {
+    text-align: right;
+    margin-top: 12px;
+    color: #c62828;
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.chart-section {
+    margin-top: 25px;
+}
+
+#expensePieChart {
+    display: block;
+    width: 100% !important;
+    max-width: 320px !important;
+    height: 320px !important;
+    margin: 0 auto;
+}
+
+.calendar-hint {
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+    margin: -5px 0 12px;
+}
+
+.transaction-toggle {
+    width: 100%;
+    padding: 12px 15px;
+    border: none;
+    border-radius: 10px;
+    background: #1565c0;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: left;
+    cursor: pointer;
+}
+
+.transaction-content {
+    display: none;
+    margin-top: 12px;
+}
+
+.category-comparison-section {
+    margin-top: 20px;
+}
+
+.category-comparison-section h2 {
+    margin-bottom: 12px;
+}
+
+.category-comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.category-comparison-table th,
+.category-comparison-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: left;
+    font-size: 14px;
+}
+
+.category-comparison-table th {
+    font-weight: bold;
+    background: #f5f5f5;
+    color: #333;
+}
+
+.category-comparison-table td:last-child {
+    font-weight: bold;
+}
+
+.category-up {
+    color: #c62828;
+}
+
+.category-down {
+    color: #2e7d32;
+}
+
+.category-same {
+    color: #777;
+}
+
+@media (max-width: 600px) {
+
+    .category-comparison-table th,
+    .category-comparison-table td {
+        padding: 8px 5px;
+        font-size: 12px;
+    }
+
+}
+/* =====================================================
+   SIDE-BY-SIDE CHARTS
+   ===================================================== */
+
+.charts-row {
+
+    display: flex;
+
+    gap: 20px;
+
+    align-items: stretch;
+
+    width: 100%;
+
+}
+
+
+.chart-box {
+
+    flex: 1;
+
+    min-width: 0;
+
+    padding: 15px;
+
+    box-sizing: border-box;
+
+}
+
+
+.chart-box h3 {
+
+    text-align: center;
+
+    margin-top: 0;
+
+}
+
+
+.chart-box canvas {
+
+    width: 100% !important;
+
+    max-height: 320px;
+
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (max-width: 700px) {
+
+    .charts-row {
+
+        flex-direction: column;
+
+    }
+
+}
+/* =====================================================
+   SOFT COLOUR THEME
+   ===================================================== */
+
+body {
+    background: #f5f8fc;
+}
+
+
+/* =====================================================
+   HEADER
+   ===================================================== */
+
+header {
+    background: #eaf3ff;
+    border: 1px solid #d7e8fa;
+}
+
+
+/* =====================================================
+   MONTH SECTION
+   ===================================================== */
+
+.month-box {
+    background: #eef6ff;
+    border: 1px solid #d8e9f8;
+}
+
+
+/* =====================================================
+   COMPARISON
+   ===================================================== */
+
+.comparison-section {
+    background: #f0f7ff;
+    border: 1px solid #d9eafa;
+}
+
+
+/* =====================================================
+   CATEGORY COMPARISON
+   ===================================================== */
+
+.category-comparison-section {
+    background: #f6f1ff;
+    border: 1px solid #e6dcf5;
+}
+
+
+/* =====================================================
+   SUMMARY CARDS
+   ===================================================== */
+
+.summary .card:nth-child(1) {
+    background: #effaf3;
+    border-color: #d5eedc;
+}
+
+
+.summary .card:nth-child(2) {
+    background: #fff3f3;
+    border-color: #f2d8d8;
+}
+
+
+.summary .card:nth-child(3) {
+    background: #fff9e8;
+    border-color: #f1e5b9;
+}
+
+
+/* =====================================================
+   ADD EXPENSE
+   ===================================================== */
+
+.expense-form {
+    background: #eef7ff;
+    border: 1px solid #d7e9f8;
+}
+
+
+/* =====================================================
+   TRANSACTIONS
+   ===================================================== */
+
+.transaction-section {
+    background: #f8fafc;
+    border: 1px solid #e1e7ef;
+}
+
+
+.transaction-content {
+    background: #ffffff;
+}
+
+
+/* =====================================================
+   CALENDAR
+   ===================================================== */
+
+.calendar-section {
+    background: #f7f3ff;
+    border: 1px solid #e5dcf5;
+}
+
+
+/* =====================================================
+   CHARTS
+   ===================================================== */
+
+.chart-section {
+    background: #f0f7ff;
+    border: 1px solid #d8e9f8;
+}
+
+
+.chart-box {
+    background: #ffffff;
+    border: 1px solid #e2eaf2;
+    border-radius: 12px;
+}
+
+
+/* =====================================================
+   FORM INPUTS
+   ===================================================== */
+
+input,
+select {
+    background: #ffffff;
+    border: 1px solid #cfdbe8;
+}
+
+
+input:focus,
+select:focus {
+    border-color: #90bde8;
+    outline: none;
+}
+
+
+/* =====================================================
+   BUTTONS
+   ===================================================== */
+
+button {
+    border-radius: 8px;
+}
+
+
+/* =====================================================
+   TRANSACTION TABLE
+   ===================================================== */
+
+.transaction-section table {
+    background: #ffffff;
+}
+
+
+.transaction-section thead {
+    background: #edf4fb;
+}
+
+
+.transaction-section tbody tr:nth-child(even) {
+    background: #f8fafc;
+}
+
+
+/* =====================================================
+   CALENDAR DAYS
+   ===================================================== */
+
+.calendar-day {
+    background: #ffffff;
+    border: 1px solid #e2dcef;
+}
+
+
+.calendar-day:hover {
+    background: #eef5ff;
+}
+
+
+/* =====================================================
+   FOOTER
+   ===================================================== */
+
+footer {
+    background: #eef3f8;
+}
+
+/* =====================================================
+   COLOURFUL SOFT DASHBOARD THEME
+   ===================================================== */
+
+body {
+    background: #f3f7fc;
+}
+
+
+/* Header */
+
+header {
+    background: linear-gradient(
+        135deg,
+        #dff1ff,
+        #e9e1ff
+    );
+
+    border-color: #c9ddf2;
+}
+
+
+/* Month */
+
+.month-box {
+    background: #e3f2fd;
+    border-color: #b9d9f2;
+}
+
+
+/* Comparison */
+
+.comparison-section {
+    background: #e8f4ff;
+    border-color: #c5e0f5;
+}
+
+
+/* Category comparison */
+
+.category-comparison-section {
+    background: #f1e8ff;
+    border-color: #dfcef7;
+}
+
+
+/* Summary cards */
+
+.summary .card:nth-child(1) {
+    background: #e4f8ec;
+    border-color: #c5e8d2;
+}
+
+
+.summary .card:nth-child(2) {
+    background: #ffe8e8;
+    border-color: #f4cccc;
+}
+
+
+.summary .card:nth-child(3) {
+    background: #fff5d9;
+    border-color: #f0dfaa;
+}
+
+
+/* Add Expense */
+
+.expense-form {
+    background: #e3f5ff;
+    border-color: #bfe1f2;
+}
+
+
+/* Transactions */
+
+.transaction-section {
+    background: #fff0e6;
+    border-color: #f2d2bd;
+}
+
+
+.transaction-content {
+    background: #fffaf7;
+}
+
+
+/* Calendar */
+
+.calendar-section {
+    background: #eee8ff;
+    border-color: #d8cef2;
+}
+
+
+/* Charts */
+
+.chart-section {
+    background: #e4f7f7;
+    border-color: #c4e5e5;
+}
+
+
+.chart-box {
+    background: #ffffff;
+    border-color: #d7e8e8;
+}
+
+
+/* Inputs */
+
+input,
+select {
+    background: #ffffff;
+    border-color: #c8d7e5;
+}
+
+
+input:focus,
+select:focus {
+    border-color: #64b5f6;
+    box-shadow:
+        0 0 0 3px
+        rgba(100,181,246,0.15);
+
+    outline: none;
+}
+
+
+/* Transaction table */
+
+.transaction-section thead {
+    background: #ffe3d2;
+}
+
+
+.transaction-section tbody tr:nth-child(even) {
+    background: #fff8f3;
+}
+
+
+/* Calendar */
+
+.calendar-day {
+    background: #ffffff;
+    border-color: #dcd2ef;
+}
+
+
+.calendar-day:hover {
+    background: #e5f1ff;
+}
+
+
+/* Buttons */
+
+button {
+    border-radius: 9px;
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+
+button:hover {
+    transform: translateY(-1px);
+    box-shadow:
+        0 3px 8px
+        rgba(0,0,0,0.10);
+}
+
+
+/* Footer */
+
+footer {
+    background: #e5edf5;
+}
+.backup-section {
+    background: #fff8e1;
+    border: 1px solid #f1dfaa;
+    border-radius: 12px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.backup-section h2 {
+    margin-top: 0;
+}
+
+.backup-note {
+    margin: 0;
+    color: #5f4b00;
+    font-size: 13px;
+    line-height: 1.5;
+}
+/* =====================================================
+   PAYMENT REMINDERS
+   ===================================================== */
+
+.reminder-section {
+    background: #fff5f5;
+    border: 1px solid #f2caca;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 30px;
+}
+
+.reminder-section h2 {
+    color: #c62828;
+    margin-bottom: 15px;
+}
+
+.reminder-form {
+    margin-top: 15px;
+    padding: 15px;
+    background: #fffafa;
+    border: 1px solid #f0d0d0;
+    border-radius: 10px;
+}
+
+.reminder-form label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.reminder-form button {
+    margin-right: 8px;
+}
+
+.reminder-date {
+    background: #ffebee !important;
+    border-color: #ef9a9a !important;
+}
+
+.reminder-day {
+    background: #ffebee !important;
+    border: 2px solid #e53935 !important;
+}
+
+.reminder-day .date {
+    color: #c62828;
+    font-weight: bold;
+}
+
+.reminder-label {
+    margin-top: 6px;
+    color: #c62828;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.reminder-box {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #ffebee;
+    border-left: 6px solid #e53935;
+    border-radius: 8px;
+}
+
+.reminder-box h3 {
+    color: #c62828;
+    margin-bottom: 8px;
+}
+
+.reminder-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #f0caca;
+}
+
+.reminder-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.reminder-actions button {
+    margin-top: 0;
+    padding: 7px 12px;
+    font-size: 13px;
+}
+
+.reminder-done {
+    background: #2e7d32 !important;
+}
+
+.reminder-dismiss {
+    background: #757575 !important;
+}
