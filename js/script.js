@@ -2,9 +2,58 @@
 // Month-wise + IndexedDB Storage + Backup/Restore
 // Income entries with date-wise breakdown
 
+
 const monthSelect =
     document.getElementById("monthSelect");
+    function generateMonthOptions(){
+    const currentYear = new Date().getFullYear();
 
+    monthSelect.innerHTML = "";
+
+    for(let year = 2026; year <= currentYear + 1; year++){
+        for(let month = 1; month <= 12; month++){
+
+            const value = `${year}-${String(month).padStart(2, "0")}`;
+
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = new Date(year, month - 1, 1)
+                .toLocaleString("en-US", {
+                    month: "long",
+                    year: "numeric"
+                });
+
+            monthSelect.appendChild(option);
+        }
+    }
+
+    const currentMonth = new Date().toISOString().slice(0, 7);
+
+    if([...monthSelect.options].some(o => o.value === currentMonth)){
+        monthSelect.value = currentMonth;
+    }
+}
+
+generateMonthOptions();
+// Automatically select the current month
+const currentMonth =
+    new Date()
+        .toISOString()
+        .slice(0, 7);
+
+if(
+    [...monthSelect.options]
+        .some(
+            option =>
+                option.value ===
+                currentMonth
+        )
+){
+
+    monthSelect.value =
+        currentMonth;
+
+}
 const incomeInput =
     document.getElementById("incomeInput");
 
@@ -104,7 +153,9 @@ let db = {
 
     incomes: [],
 
-    expenses: []
+    expenses: [],
+
+    reminders: []
 
 };
 
@@ -362,7 +413,11 @@ function idbPut(month, data){
 
                                 expenses:
                                     data.expenses ||
-                                    []
+                                    [],
+
+reminders:
+    data.reminders ||
+    []
 
                             });
 
@@ -465,7 +520,9 @@ function normalizeMonthData(
 
             incomes: [],
 
-            expenses: []
+            expenses: [],
+
+        reminders: []
 
         };
 
@@ -642,12 +699,95 @@ function normalizeMonthData(
 
 
             e.amount =
-                Number(
-                    e.amount
-                ) || 0;
+    Number(e.amount)
+    || 0;
+
+const categoryMap = {
+    "Food": "Food & Dining",
+    "Medicine": "Health & Medicine",
+    "Internet": "Utilities & Bills",
+    "Electricity": "Utilities & Bills",
+    "House Tax": "Taxes & Government"
+};
+
+if (categoryMap[e.category]) {
+    e.category = categoryMap[e.category];
+    changed = true;
+}
 
         }
     );
+    // =================================================
+// REMINDER NORMALIZATION
+// =================================================
+
+if(
+    !Array.isArray(
+        data.reminders
+    )
+){
+
+    data.reminders = [];
+
+    changed = true;
+
+}
+
+data.reminders.forEach(
+    reminder => {
+
+        if(!reminder._id){
+
+            reminder._id =
+                Date.now() +
+                Math.floor(
+                    Math.random() * 1000000
+                );
+
+            changed = true;
+
+        }
+
+        if(
+            typeof reminder.done !==
+            "boolean"
+        ){
+
+            reminder.done = false;
+
+            changed = true;
+
+        }
+
+        if(!reminder.title){
+
+            reminder.title =
+                "Payment Reminder";
+
+            changed = true;
+
+        }
+
+        if(!reminder.repeat){
+
+            reminder.repeat =
+                "once";
+
+            changed = true;
+
+        }
+
+        if(!reminder.alert){
+
+            reminder.alert =
+                "1day";
+
+            changed = true;
+
+        }
+
+    }
+);
 
 
     return {
@@ -798,13 +938,20 @@ async function initStorage(){
                                 : null,
 
                             expenses:
-                                Array.isArray(
-                                    item.expenses
-                                )
-                                ? item.expenses
-                                : []
+    Array.isArray(
+        item.expenses
+    )
+    ? item.expenses
+    : [],
 
-                        },
+reminders:
+    Array.isArray(
+        item.reminders
+    )
+    ? item.reminders
+    : []
+
+},
                         item.month
                     );
 
@@ -907,6 +1054,14 @@ async function loadMonth(){
                     )
                     ? stored.expenses
                     : []
+                    ,
+
+reminders:
+    Array.isArray(
+        stored.reminders
+    )
+    ? stored.reminders
+    : []
 
               }
 
@@ -919,7 +1074,10 @@ async function loadMonth(){
                     [],
 
                 expenses:
-                    []
+                    [],
+
+    reminders:
+        []
 
               };
 
@@ -1287,141 +1445,113 @@ function render(){
     }
 
 
-    // =================================================
-    // SORTING
-    // =================================================
+// =================================================
+// SORTING
+// =================================================
 
-    if(transactionSort){
+if(transactionSort){
 
-        if(
-            transactionSort.value ===
-            "newest"
-        ){
+    if(transactionSort.value === "newest"){
 
-            transactions.sort(
-                (a,b) =>
-                    new Date(b.date) -
-                    new Date(a.date)
-            );
-
-        }
-
-
-        else if(
-            transactionSort.value ===
-            "oldest"
-        ){
-
-            transactions.sort(
-                (a,b) =>
-                    new Date(a.date) -
-                    new Date(b.date)
-            );
-
-        }
-
-
-        else if(
-            transactionSort.value ===
-            "categoryAZ"
-        ){
-
-            transactions.sort(
-                (a,b) =>
-                    a.category
-                        .localeCompare(
-                            b.category
-                        )
-            );
-
-        }
-
-
-        else if(
-            transactionSort.value ===
-            "categoryZA"
-        ){
-
-            transactions.sort(
-                (a,b) =>
-                    b.category
-                        .localeCompare(
-                            a.category
-                        )
-            );
-
-        }
-
-
-        else if(
-            transactionSort.value ===
-            "amountHigh"
-        ){
-
-            transactions.sort(
-                (a,b) =>
-                    b.amount -
-                    a.amount
-            );
-
-        }
-
-
-        else if(
-            transactionSort.value ===
-            "amountLow"
-        ){
-
-            transactions.sort(
-                (a,b) =>
-                    a.amount -
-                    b.amount
-            );
-
-        }
-        else if(
-    transactionSort.value ===
-    "walletCash"
-){
-
-    transactions =
-        transactions.filter(
-            e =>
-                e.wallet ===
-                "Cash"
+        transactions.sort(
+            (a,b) =>
+                new Date(b.date) -
+                new Date(a.date)
         );
-
-}
-
-else if(
-    transactionSort.value ===
-    "walletCreditCard"
-){
-
-    transactions =
-        transactions.filter(
-            e =>
-                e.wallet ===
-                "Credit Card"
-        );
-
-}
-
-else if(
-    transactionSort.value ===
-    "walletUPI"
-){
-
-    transactions =
-        transactions.filter(
-            e =>
-                e.wallet ===
-                "UPI"
-        );
-
-}
 
     }
+
+    else if(transactionSort.value === "oldest"){
+
+        transactions.sort(
+            (a,b) =>
+                new Date(a.date) -
+                new Date(b.date)
+        );
+
+    }
+
+    else if(transactionSort.value === "amountHigh"){
+
+        transactions.sort(
+            (a,b) =>
+                Number(b.amount) -
+                Number(a.amount)
+        );
+
+    }
+
+    else if(transactionSort.value === "amountLow"){
+
+        transactions.sort(
+            (a,b) =>
+                Number(a.amount) -
+                Number(b.amount)
+        );
+
+    }
+
+    else if(transactionSort.value === "walletCash"){
+
+        transactions =
+            transactions.filter(
+                e =>
+                    e.wallet === "Cash"
+            );
+
+    }
+
+    else if(transactionSort.value === "walletBank"){
+
+        transactions =
+            transactions.filter(
+                e =>
+                    e.wallet === "Bank Account"
+            );
+
+    }
+
+    else if(transactionSort.value === "walletUPI"){
+
+        transactions =
+            transactions.filter(
+                e =>
+                    e.wallet === "UPI"
+            );
+
+    }
+
+    else if(transactionSort.value === "walletDebitCard"){
+
+        transactions =
+            transactions.filter(
+                e =>
+                    e.wallet === "Debit Card"
+            );
+
+    }
+
+    else if(transactionSort.value === "walletCreditCard"){
+
+        transactions =
+            transactions.filter(
+                e =>
+                    e.wallet === "Credit Card"
+            );
+
+    }
+
+    else if(transactionSort.value === "walletOthers"){
+
+        transactions =
+            transactions.filter(
+                e =>
+                    e.wallet === "Others"
+            );
+
+    }
+
+}
 
 
     // =================================================
@@ -2276,8 +2406,177 @@ function renderCalendar(){
         );
 
     }
+}
+    // =====================================================
+// HIGHLIGHT REMINDER DATES
+// =====================================================
+
+function highlightReminderDates(){
+
+    const calendar =
+        document.getElementById("calendar");
+
+    if(!calendar){
+        return;
+    }
+
+    // Remove old reminder markings first
+    calendar
+        .querySelectorAll(".reminder-day")
+        .forEach(day => {
+
+            day.classList.remove(
+                "reminder-day"
+            );
+
+            const mark =
+                day.querySelector(
+                    ".reminder-label"
+                );
+
+            if(mark){
+                mark.remove();
+            }
+
+        });
+
+
+    const currentMonth =
+        monthSelect.value;
+
+
+    const reminders =
+        Array.isArray(db.reminders)
+        ? db.reminders
+        : [];
+
+
+    reminders.forEach(
+        reminder => {
+
+            // Completed reminder
+            // should not remain red
+
+            if(reminder.done){
+                return;
+            }
+
+
+            let reminderDate =
+                reminder.date;
+
+
+            // Monthly reminder
+            // applies to every month
+
+            if(
+                reminder.repeat ===
+                "monthly"
+            ){
+
+                const day =
+                    reminderDate
+                        .split("-")[2];
+
+                reminderDate =
+                    currentMonth +
+                    "-" +
+                    day;
+
+            }
+
+
+            // Only current month
+
+            if(
+                !reminderDate.startsWith(
+                    currentMonth
+                )
+            ){
+
+                return;
+
+            }
+
+
+            const dayNumber =
+                Number(
+                    reminderDate
+                        .split("-")[2]
+                );
+
+
+            const calendarDays =
+                calendar.querySelectorAll(
+                    ".calendar-day"
+                );
+
+
+            calendarDays.forEach(
+                day => {
+
+                    const dateElement =
+                        day.querySelector(
+                            ".date"
+                        );
+
+
+                    if(!dateElement){
+                        return;
+                    }
+
+
+                    const number =
+                        Number(
+                            dateElement
+                                .textContent
+                                .trim()
+                        );
+
+
+                    if(
+                        number ===
+                        dayNumber
+                    ){
+
+                        day.classList.add(
+                            "reminder-day"
+                        );
+
+
+                        if(
+                            !day.querySelector(
+                                ".reminder-label"
+                            )
+                        ){
+
+                            const label =
+                                document.createElement(
+                                    "div"
+                                );
+
+                            label.className =
+                                "reminder-label";
+
+                            label.textContent =
+                                "🔔 Reminder";
+
+                            day.appendChild(
+                                label
+                            );
+
+                        }
+
+                    }
+
+                }
+            );
+
+        }
+    );
 
 }
+
 // =====================================================
 // PIE CHART
 // =====================================================
@@ -2774,6 +3073,10 @@ render =
         _oldRender();
 
         renderCalendar();
+
+        highlightReminderDates();
+
+        renderReminderAlerts();
 
         renderExpensePieChart();
 
@@ -5743,3 +6046,432 @@ else{
     createBackupRestoreUI();
 
 }
+// =====================================================
+// PAYMENT REMINDER SYSTEM
+// =====================================================
+
+const addReminderButton =
+    document.getElementById(
+        "addReminderButton"
+    );
+
+const reminderForm =
+    document.getElementById(
+        "reminderForm"
+    );
+
+const reminderDate =
+    document.getElementById(
+        "reminderDate"
+    );
+
+const reminderTitle =
+    document.getElementById(
+        "reminderTitle"
+    );
+
+const reminderRepeat =
+    document.getElementById(
+        "reminderRepeat"
+    );
+
+const reminderAlert =
+    document.getElementById(
+        "reminderAlert"
+    );
+
+const saveReminderButton =
+    document.getElementById(
+        "saveReminderButton"
+    );
+
+const cancelReminderButton =
+    document.getElementById(
+        "cancelReminderButton"
+    );
+
+
+if(addReminderButton){
+
+    addReminderButton.onclick =
+        function(){
+
+            reminderForm.style.display =
+                "block";
+
+            reminderDate.value =
+                monthSelect.value +
+                "-01";
+
+        };
+
+}
+
+
+if(cancelReminderButton){
+
+    cancelReminderButton.onclick =
+        function(){
+
+            reminderForm.style.display =
+                "none";
+
+        };
+
+}
+
+
+if(saveReminderButton){
+
+    saveReminderButton.onclick =
+        async function(){
+
+            if(!reminderDate.value){
+
+                alert(
+                    "Please select a date."
+                );
+
+                return;
+
+            }
+
+
+            if(!reminderTitle.value.trim()){
+
+                alert(
+                    "Please enter reminder."
+                );
+
+                return;
+
+            }
+
+
+            const reminder = {
+
+                _id:
+                    Date.now() +
+                    Math.floor(
+                        Math.random() *
+                        1000000
+                    ),
+
+                date:
+                    reminderDate.value,
+
+                title:
+                    reminderTitle.value.trim(),
+
+                repeat:
+                    reminderRepeat.value,
+
+                alert:
+                    reminderAlert.value,
+
+                done:
+                    false
+
+            };
+
+
+            if(
+                !Array.isArray(
+                    db.reminders
+                )
+            ){
+
+                db.reminders = [];
+
+            }
+
+
+            db.reminders.push(
+                reminder
+            );
+
+
+            await saveMonth();
+
+
+            reminderDate.value =
+                "";
+
+            reminderTitle.value =
+                "";
+
+            reminderForm.style.display =
+                "none";
+
+
+            render();
+
+        };
+
+}
+// =====================================================
+// REMINDER ALERT BOX
+// =====================================================
+
+function renderReminderAlerts(){
+
+    const reminderSection =
+        document.getElementById(
+            "reminderSection"
+        );
+
+    if(!reminderSection){
+        return;
+    }
+
+
+    let alertBox =
+        document.getElementById(
+            "activeReminderBox"
+        );
+
+
+    if(!alertBox){
+
+        alertBox =
+            document.createElement(
+                "div"
+            );
+
+        alertBox.id =
+            "activeReminderBox";
+
+        reminderSection.prepend(
+            alertBox
+        );
+
+    }
+
+
+    alertBox.innerHTML =
+        "";
+
+
+    const today =
+        new Date();
+
+    today.setHours(
+        0,0,0,0
+    );
+
+
+    const reminders =
+        Array.isArray(db.reminders)
+        ? db.reminders
+        : [];
+
+
+    reminders.forEach(
+        reminder => {
+
+            if(reminder.done){
+                return;
+            }
+
+
+            let dueDate =
+                new Date(
+                    reminder.date +
+                    "T00:00:00"
+                );
+
+
+            // For monthly reminder,
+            // use current month
+
+            if(
+                reminder.repeat ===
+                "monthly"
+            ){
+
+                const day =
+                    reminder.date
+                        .split("-")[2];
+
+                const [
+                    year,
+                    month
+                ] =
+                    monthSelect.value
+                        .split("-")
+                        .map(Number);
+
+
+                dueDate =
+                    new Date(
+                        year,
+                        month - 1,
+                        Number(day)
+                    );
+
+            }
+
+
+            const dayBefore =
+                new Date(
+                    dueDate
+                );
+
+
+            dayBefore.setDate(
+                dayBefore.getDate() - 1
+            );
+
+
+            // Reminder becomes active
+            // one day before
+
+            if(
+                today <
+                dayBefore
+            ){
+
+                return;
+
+            }
+
+
+            const box =
+                document.createElement(
+                    "div"
+                );
+
+
+            box.className =
+                "reminder-box";
+
+
+            box.innerHTML = `
+
+                <h3>
+                    🔴 Upcoming Payment
+                </h3>
+
+                <div
+                    class="reminder-item"
+                >
+
+                    <strong>
+                        ${reminder.title}
+                    </strong>
+
+                    <br>
+
+                    Due:
+                    ${reminder.date}
+
+                    <div
+                        class="reminder-actions"
+                    >
+
+                        <button
+                            class="reminder-done"
+                            data-reminder-done="${reminder._id}"
+                        >
+                            ✓ Done
+                        </button>
+
+                        <button
+                            class="reminder-dismiss"
+                            data-reminder-dismiss="${reminder._id}"
+                        >
+                            ✕ Dismiss for now
+                        </button>
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+            alertBox.appendChild(
+                box
+            );
+
+        }
+    );
+
+}
+// =====================================================
+// REMINDER BUTTONS
+// =====================================================
+
+document.addEventListener(
+    "click",
+    async function(e){
+
+        // DONE
+
+        if(
+            e.target.dataset
+                .reminderDone
+        ){
+
+            const id =
+                Number(
+                    e.target.dataset
+                        .reminderDone
+                );
+
+
+            const reminder =
+                db.reminders.find(
+                    r =>
+                        r._id === id
+                );
+
+
+            if(reminder){
+
+                reminder.done =
+                    true;
+
+                await saveMonth();
+
+                render();
+
+                highlightReminderDates();
+
+                renderReminderAlerts();
+
+            }
+
+        }
+
+
+        // DISMISS FOR NOW
+
+        if(
+            e.target.dataset
+                .reminderDismiss
+        ){
+
+            const id =
+                Number(
+                    e.target.dataset
+                        .reminderDismiss
+                );
+
+
+            /*
+             * Do NOT delete reminder.
+             *
+             * Just hide it temporarily.
+             */
+
+            e.target
+                .closest(
+                    ".reminder-box"
+                )
+                ?.remove();
+
+        }
+
+    }
+);
