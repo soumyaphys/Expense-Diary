@@ -21,13 +21,7 @@
 
 <div class="month-box">
 <label for="monthSelect">📅 Month</label>
-<select id="monthSelect">
-<option value="2026-08">August 2026</option>
-<option value="2026-09">September 2026</option>
-<option value="2026-10">October 2026</option>
-<option value="2026-11">November 2026</option>
-<option value="2026-12">December 2026</option>
-</select>
+<select id="monthSelect"></select>
 <br><br>
 
 <button id="resetMonthButton">
@@ -105,16 +99,19 @@
 <div class="field">
 <label>Category</label>
 <select id="expenseCategory">
-<option>Food</option>
+<option>Food & Dining</option>
 <option>Transport</option>
 <option>Fuel</option>
-<option>Medicine</option>
+<option>Household</option>
+<option>Utilities & Bills</option>
+<option>Credit Card & Loan</option>
+<option>Health & Medicine</option>
 <option>Shopping</option>
-<option>Internet</option>
-<option>Electricity</option>
-<option>House Tax</option>
 <option>Education</option>
 <option>Travel</option>
+<option>Taxes & Government</option>
+<option>Gifts & Social</option>
+<option>Savings & Investment</option>
 <option>Others</option>
 </select>
 </div>
@@ -122,13 +119,12 @@
 <div class="field">
 <label>Paid From</label>
 <select id="expenseWallet">
-<option>Cash</option>
-<option>SBI</option>
-<option>HDFC</option>
-<option>PNB</option>
-<option>PhonePe</option>
-<option>Google Pay</option>
-<option>Credit Card</option>
+    <option value="Cash">Cash</option>
+    <option value="Bank Account">Bank Account</option>
+    <option value="UPI">UPI</option>
+    <option value="Debit Card">Debit Card</option>
+    <option value="Credit Card">Credit Card</option>
+    <option value="Others">Others</option>
 </select>
 </div>
 </div>
@@ -151,31 +147,35 @@
 <div class="transaction-controls">
 
 <select id="categoryFilter">
-    <option value="all">All Categories</option>
-    <option value="Food">Food</option>
-    <option value="Transport">Transport</option>
-    <option value="Fuel">Fuel</option>
-    <option value="Medicine">Medicine</option>
-    <option value="Shopping">Shopping</option>
-    <option value="Internet">Internet</option>
-    <option value="Electricity">Electricity</option>
-    <option value="House Tax">House Tax</option>
-    <option value="Education">Education</option>
-    <option value="Travel">Travel</option>
-    <option value="Others">Others</option>
+<option value="all">All Categories</option>
+<option value="Food & Dining">Food & Dining</option>
+<option value="Transport">Transport</option>
+<option value="Fuel">Fuel</option>
+<option value="Household">Household</option>
+<option value="Utilities & Bills">Utilities & Bills</option>
+<option value="Credit Card & Loan">Credit Card & Loan</option>
+<option value="Health & Medicine">Health & Medicine</option>
+<option value="Shopping">Shopping</option>
+<option value="Education">Education</option>
+<option value="Travel">Travel</option>
+<option value="Taxes & Government">Taxes & Government</option>
+<option value="Gifts & Social">Gifts & Social</option>
+<option value="Savings & Investment">Savings & Investment</option>
+<option value="Others">Others</option>
 </select>
 
     <select id="transactionSort">
-        <option value="newest">Newest First</option>
-        <option value="oldest">Oldest First</option>
-        <option value="categoryAZ">Category A → Z</option>
-        <option value="categoryZA">Category Z → A</option>
-        <option value="amountHigh">Amount High → Low</option>
-        <option value="amountLow">Amount Low → High</option>
-        <option value="walletCash">Paid From: Cash</option>
-        <option value="walletCreditCard">Paid From: Credit Card</option>
-        <option value="walletUPI">Paid From: UPI</option>
-    </select>
+    <option value="newest">Newest First</option>
+    <option value="oldest">Oldest First</option>
+    <option value="amountHigh">Amount: High to Low</option>
+    <option value="amountLow">Amount: Low to High</option>
+    <option value="walletCash">Paid From: Cash</option>
+    <option value="walletBank">Paid From: Bank Account</option>
+    <option value="walletUPI">Paid From: UPI</option>
+    <option value="walletDebitCard">Paid From: Debit Card</option>
+    <option value="walletCreditCard">Paid From: Credit Card</option>
+    <option value="walletOthers">Paid From: Others</option>
+</select>
 
 </div>
 <table>

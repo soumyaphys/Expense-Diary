@@ -2,8 +2,39 @@
 // Month-wise + IndexedDB Storage + Backup/Restore
 // Income entries with date-wise breakdown
 
+
 const monthSelect =
     document.getElementById("monthSelect");
+    function generateMonthOptions(){
+    const currentYear = new Date().getFullYear();
+
+    monthSelect.innerHTML = "";
+
+    for(let year = 2026; year <= currentYear + 1; year++){
+        for(let month = 1; month <= 12; month++){
+
+            const value = `${year}-${String(month).padStart(2, "0")}`;
+
+            const option = document.createElement("option");
+            option.value = value;
+            option.textContent = new Date(year, month - 1, 1)
+                .toLocaleString("en-US", {
+                    month: "long",
+                    year: "numeric"
+                });
+
+            monthSelect.appendChild(option);
+        }
+    }
+
+    const currentMonth = new Date().toISOString().slice(0, 7);
+
+    if([...monthSelect.options].some(o => o.value === currentMonth)){
+        monthSelect.value = currentMonth;
+    }
+}
+
+generateMonthOptions();
 // Automatically select the current month
 const currentMonth =
     new Date()
@@ -668,9 +699,21 @@ function normalizeMonthData(
 
 
             e.amount =
-                Number(
-                    e.amount
-                ) || 0;
+    Number(e.amount)
+    || 0;
+
+const categoryMap = {
+    "Food": "Food & Dining",
+    "Medicine": "Health & Medicine",
+    "Internet": "Utilities & Bills",
+    "Electricity": "Utilities & Bills",
+    "House Tax": "Taxes & Government"
+};
+
+if (categoryMap[e.category]) {
+    e.category = categoryMap[e.category];
+    changed = true;
+}
 
         }
     );
@@ -1402,141 +1445,113 @@ function render(){
     }
 
 
-    // =================================================
-    // SORTING
-    // =================================================
+// =================================================
+// SORTING
+// =================================================
 
-    if(transactionSort){
+if(transactionSort){
 
-        if(
-            transactionSort.value ===
-            "newest"
-        ){
+    if(transactionSort.value === "newest"){
 
-            transactions.sort(
-                (a,b) =>
-                    new Date(b.date) -
-                    new Date(a.date)
-            );
-
-        }
-
-
-        else if(
-            transactionSort.value ===
-            "oldest"
-        ){
-
-            transactions.sort(
-                (a,b) =>
-                    new Date(a.date) -
-                    new Date(b.date)
-            );
-
-        }
-
-
-        else if(
-            transactionSort.value ===
-            "categoryAZ"
-        ){
-
-            transactions.sort(
-                (a,b) =>
-                    a.category
-                        .localeCompare(
-                            b.category
-                        )
-            );
-
-        }
-
-
-        else if(
-            transactionSort.value ===
-            "categoryZA"
-        ){
-
-            transactions.sort(
-                (a,b) =>
-                    b.category
-                        .localeCompare(
-                            a.category
-                        )
-            );
-
-        }
-
-
-        else if(
-            transactionSort.value ===
-            "amountHigh"
-        ){
-
-            transactions.sort(
-                (a,b) =>
-                    b.amount -
-                    a.amount
-            );
-
-        }
-
-
-        else if(
-            transactionSort.value ===
-            "amountLow"
-        ){
-
-            transactions.sort(
-                (a,b) =>
-                    a.amount -
-                    b.amount
-            );
-
-        }
-        else if(
-    transactionSort.value ===
-    "walletCash"
-){
-
-    transactions =
-        transactions.filter(
-            e =>
-                e.wallet ===
-                "Cash"
+        transactions.sort(
+            (a,b) =>
+                new Date(b.date) -
+                new Date(a.date)
         );
-
-}
-
-else if(
-    transactionSort.value ===
-    "walletCreditCard"
-){
-
-    transactions =
-        transactions.filter(
-            e =>
-                e.wallet ===
-                "Credit Card"
-        );
-
-}
-
-else if(
-    transactionSort.value ===
-    "walletUPI"
-){
-
-    transactions =
-        transactions.filter(
-            e =>
-                e.wallet ===
-                "UPI"
-        );
-
-}
 
     }
+
+    else if(transactionSort.value === "oldest"){
+
+        transactions.sort(
+            (a,b) =>
+                new Date(a.date) -
+                new Date(b.date)
+        );
+
+    }
+
+    else if(transactionSort.value === "amountHigh"){
+
+        transactions.sort(
+            (a,b) =>
+                Number(b.amount) -
+                Number(a.amount)
+        );
+
+    }
+
+    else if(transactionSort.value === "amountLow"){
+
+        transactions.sort(
+            (a,b) =>
+                Number(a.amount) -
+                Number(b.amount)
+        );
+
+    }
+
+    else if(transactionSort.value === "walletCash"){
+
+        transactions =
+            transactions.filter(
+                e =>
+                    e.wallet === "Cash"
+            );
+
+    }
+
+    else if(transactionSort.value === "walletBank"){
+
+        transactions =
+            transactions.filter(
+                e =>
+                    e.wallet === "Bank Account"
+            );
+
+    }
+
+    else if(transactionSort.value === "walletUPI"){
+
+        transactions =
+            transactions.filter(
+                e =>
+                    e.wallet === "UPI"
+            );
+
+    }
+
+    else if(transactionSort.value === "walletDebitCard"){
+
+        transactions =
+            transactions.filter(
+                e =>
+                    e.wallet === "Debit Card"
+            );
+
+    }
+
+    else if(transactionSort.value === "walletCreditCard"){
+
+        transactions =
+            transactions.filter(
+                e =>
+                    e.wallet === "Credit Card"
+            );
+
+    }
+
+    else if(transactionSort.value === "walletOthers"){
+
+        transactions =
+            transactions.filter(
+                e =>
+                    e.wallet === "Others"
+            );
+
+    }
+
+}
 
 
     // =================================================
