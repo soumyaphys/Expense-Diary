@@ -893,3 +893,98 @@ footer {
     font-size: 13px;
     line-height: 1.5;
 }
+/* =====================================================
+   PAYMENT REMINDERS
+   ===================================================== */
+
+.reminder-section {
+    background: #fff5f5;
+    border: 1px solid #f2caca;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 30px;
+}
+
+.reminder-section h2 {
+    color: #c62828;
+    margin-bottom: 15px;
+}
+
+.reminder-form {
+    margin-top: 15px;
+    padding: 15px;
+    background: #fffafa;
+    border: 1px solid #f0d0d0;
+    border-radius: 10px;
+}
+
+.reminder-form label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.reminder-form button {
+    margin-right: 8px;
+}
+
+.reminder-date {
+    background: #ffebee !important;
+    border-color: #ef9a9a !important;
+}
+
+.reminder-day {
+    background: #ffebee !important;
+    border: 2px solid #e53935 !important;
+}
+
+.reminder-day .date {
+    color: #c62828;
+    font-weight: bold;
+}
+
+.reminder-label {
+    margin-top: 6px;
+    color: #c62828;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.reminder-box {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #ffebee;
+    border-left: 6px solid #e53935;
+    border-radius: 8px;
+}
+
+.reminder-box h3 {
+    color: #c62828;
+    margin-bottom: 8px;
+}
+
+.reminder-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #f0caca;
+}
+
+.reminder-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.reminder-actions button {
+    margin-top: 0;
+    padding: 7px 12px;
+    font-size: 13px;
+}
+
+.reminder-done {
+    background: #2e7d32 !important;
+}
+
+.reminder-dismiss {
+    background: #757575 !important;
+}
