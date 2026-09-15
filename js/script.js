@@ -3078,6 +3078,8 @@ render =
 
         renderReminderAlerts();
 
+        showReminderPopup();
+
         renderExpensePieChart();
 
         renderExpenseWalletChart();
@@ -6210,6 +6212,143 @@ if(saveReminderButton){
 
 }
 // =====================================================
+// REMINDER POPUP
+// =====================================================
+
+function showReminderPopup(){
+
+    // Remove old popup if any
+    const oldPopup =
+        document.getElementById("reminderPopup");
+
+    if(oldPopup){
+        oldPopup.remove();
+    }
+
+    const reminders =
+        Array.isArray(db.reminders)
+        ? db.reminders
+        : [];
+
+    const today =
+        new Date();
+
+    today.setHours(0,0,0,0);
+
+    const activeReminders = [];
+
+    reminders.forEach(reminder => {
+
+        if(reminder.done){
+            return;
+        }
+
+        let dueDate =
+            new Date(
+                reminder.date + "T00:00:00"
+            );
+
+        // Monthly reminder → current month
+        if(reminder.repeat === "monthly"){
+
+            const day =
+                Number(
+                    reminder.date.split("-")[2]
+                );
+
+            const [year, month] =
+                monthSelect.value
+                    .split("-")
+                    .map(Number);
+
+            dueDate =
+                new Date(
+                    year,
+                    month - 1,
+                    day
+                );
+        }
+
+        const dayBefore =
+            new Date(dueDate);
+
+        dayBefore.setDate(
+            dayBefore.getDate() - 1
+        );
+
+        // Show from 1 day before due date
+        if(today < dayBefore){
+            return;
+        }
+
+        activeReminders.push(reminder);
+
+    });
+
+    if(activeReminders.length === 0){
+        return;
+    }
+
+    const popup =
+        document.createElement("div");
+
+    popup.id =
+        "reminderPopup";
+
+    popup.innerHTML = `
+
+        <div class="reminder-popup-box">
+
+            <div class="reminder-popup-title">
+                🔴 Payment Reminder
+            </div>
+
+            <div class="reminder-popup-list">
+
+                ${activeReminders.map(reminder => `
+
+                    <div class="reminder-popup-item">
+
+                        <strong>
+                            ${reminder.title}
+                        </strong>
+
+                        <div>
+                            Due: ${reminder.date}
+                        </div>
+
+                        <div class="reminder-popup-actions">
+
+                            <button
+                                class="popup-reminder-done"
+                                data-popup-done="${reminder._id}"
+                            >
+                                ✓ Done
+                            </button>
+
+                            <button
+                                class="popup-reminder-later"
+                                data-popup-later="${reminder._id}"
+                            >
+                                Later
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                `).join("")}
+
+            </div>
+
+        </div>
+
+    `;
+
+    document.body.appendChild(popup);
+
+}
+// =====================================================
 // REMINDER ALERT BOX
 // =====================================================
 
@@ -6398,6 +6537,7 @@ function renderReminderAlerts(){
     );
 
 }
+
 // =====================================================
 // REMINDER BUTTONS
 // =====================================================
@@ -6441,6 +6581,8 @@ document.addEventListener(
                 renderReminderAlerts();
 
             }
+            // =====================================================
+
 
         }
 
@@ -6470,6 +6612,59 @@ document.addEventListener(
                     ".reminder-box"
                 )
                 ?.remove();
+
+        }
+
+    }
+);
+// REMINDER POPUP BUTTONS
+// =====================================================
+
+document.addEventListener(
+    "click",
+    async function(e){
+
+        // POPUP DONE
+        if(
+            e.target.dataset.popupDone
+        ){
+
+            const id =
+                Number(
+                    e.target.dataset.popupDone
+                );
+
+            const reminder =
+                db.reminders.find(
+                    r =>
+                        r._id === id
+                );
+
+            if(reminder){
+
+                reminder.done = true;
+
+                await saveMonth();
+
+                render();
+
+            }
+
+        }
+
+        // POPUP LATER
+        if(
+            e.target.dataset.popupLater
+        ){
+
+            const popup =
+                document.getElementById(
+                    "reminderPopup"
+                );
+
+            if(popup){
+                popup.remove();
+            }
 
         }
 

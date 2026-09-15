@@ -988,3 +988,123 @@ footer {
 .reminder-dismiss {
     background: #757575 !important;
 }
+
+.reminder-popup-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.reminder-popup-box {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border: 4px solid #d32f2f;
+    border-radius: 18px;
+    padding: 28px 22px;
+    text-align: center;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+}
+
+.reminder-popup-box h2 {
+    color: #c62828;
+    margin-top: 0;
+}
+
+#reminderPopupContent {
+    font-size: 18px;
+    line-height: 1.7;
+    margin: 18px 0;
+}
+
+.reminder-popup-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.reminder-popup-buttons button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#reminderPopupDone {
+    background: #2e7d32;
+    color: white;
+}
+
+#reminderPopupLater {
+    background: #757575;
+    color: white;
+}
+/* Reminder Popup */
+#reminderPopup {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 99999;
+    padding: 20px;
+}
+
+.reminder-popup-box {
+    width: min(92vw, 520px);
+    background: #d32f2f;
+    color: #fff;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+    text-align: center;
+}
+
+.reminder-popup-title {
+    font-size: 26px;
+    font-weight: 800;
+    margin-bottom: 18px;
+}
+
+.reminder-popup-item {
+    background: #fff;
+    color: #333;
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 12px;
+    text-align: left;
+}
+
+.reminder-popup-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.reminder-popup-actions button {
+    flex: 1;
+    border: none;
+    border-radius: 10px;
+    padding: 11px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.popup-reminder-done {
+    background: #2e7d32;
+    color: #fff;
+}
+
+.popup-reminder-later {
+    background: #eeeeee;
+    color: #333;
+}
